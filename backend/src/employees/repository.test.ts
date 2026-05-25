@@ -254,9 +254,9 @@ describe('updateEmployee', () => {
       const first = await createEmployee(client, baseInput);
       const second = await createEmployee(client, { ...baseInput, email: 'second@example.com' });
 
-      await expect(
-        updateEmployee(client, second.id, { email: first.email }),
-      ).rejects.toMatchObject({ code: 'CONFLICT' });
+      await expect(updateEmployee(client, second.id, { email: first.email })).rejects.toMatchObject(
+        { code: 'CONFLICT' },
+      );
     });
   });
 });
