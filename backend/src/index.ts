@@ -1,16 +1,22 @@
 import { loadEnv } from './config/env';
 import { closePool } from './db/pool';
+import { createApp } from './app/app';
 
 const env = loadEnv();
+const app = createApp();
 
-// Server is wired up in US-104; this file owns the lifecycle only.
-async function shutdown(signal: string): Promise<void> {
+const server = app.listen(env.port, () => {
+  console.log(`Server listening on port ${env.port}`);
+});
+
+function shutdown(signal: string): void {
   console.log(`Received ${signal} — shutting down gracefully`);
-  await closePool();
-  process.exit(0);
+  server.close(() => {
+    closePool()
+      .then(() => process.exit(0))
+      .catch(() => process.exit(1));
+  });
 }
 
-process.on('SIGTERM', () => void shutdown('SIGTERM'));
-process.on('SIGINT', () => void shutdown('SIGINT'));
-
-console.log(`Starting on port ${env.port}`);
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

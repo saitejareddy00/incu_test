@@ -11,10 +11,9 @@ describe('Express app', () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toMatchObject({ status: 'ok' });
-      expect(typeof res.body.timestamp).toBe('string');
-      expect(new Date(res.body.timestamp as string).toISOString()).toBe(
-        res.body.timestamp,
-      );
+      const body = res.body as { status: string; timestamp: string };
+      expect(typeof body.timestamp).toBe('string');
+      expect(new Date(body.timestamp).toISOString()).toBe(body.timestamp);
     });
   });
 
