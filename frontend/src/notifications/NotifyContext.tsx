@@ -33,8 +33,8 @@ export function NotifyProvider({ children }: { children: React.ReactNode }) {
 
   const value: NotifyContextValue = {
     success: (msg) => push(msg, 'success'),
-    error:   (msg) => push(msg, 'error'),
-    info:    (msg) => push(msg, 'info'),
+    error: (msg) => push(msg, 'error'),
+    info: (msg) => push(msg, 'info'),
     warning: (msg) => push(msg, 'warning'),
   };
 

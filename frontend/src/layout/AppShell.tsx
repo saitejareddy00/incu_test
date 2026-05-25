@@ -1,18 +1,19 @@
 import BarChartIcon from '@mui/icons-material/BarChart';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
-import { Box, Typography } from '@mui/material';
+import SettingsIcon from '@mui/icons-material/Settings';
+import { Box, Stack, Typography } from '@mui/material';
 import type { SvgIconComponent } from '@mui/icons-material';
 import { NavLink, Outlet } from 'react-router-dom';
 
 // ── Sidebar design tokens (Cursor-inspired) ───────────────────────────────────
-const SIDEBAR_W         = 220;
-const SIDEBAR_BG        = '#111827';   // gray-900
-const SIDEBAR_TEXT      = '#9ca3af';   // gray-400
-const SIDEBAR_ACTIVE    = '#f9fafb';   // gray-50
+const SIDEBAR_W = 220;
+const SIDEBAR_BG = '#111827'; // gray-900
+const SIDEBAR_TEXT = '#9ca3af'; // gray-400
+const SIDEBAR_ACTIVE = '#f9fafb'; // gray-50
 const SIDEBAR_ACTIVE_BG = 'rgba(255,255,255,0.08)';
-const SIDEBAR_HOVER_BG  = 'rgba(255,255,255,0.04)';
-const SIDEBAR_BORDER    = 'rgba(255,255,255,0.06)';
+const SIDEBAR_HOVER_BG = 'rgba(255,255,255,0.04)';
+const SIDEBAR_BORDER = 'rgba(255,255,255,0.06)';
 
 interface NavItem {
   label: string;
@@ -22,9 +23,9 @@ interface NavItem {
 }
 
 const NAV_LINKS: NavItem[] = [
-  { label: 'Dashboard', to: '/',          end: true, Icon: DashboardIcon },
-  { label: 'Employees', to: '/employees',            Icon: PeopleIcon    },
-  { label: 'Insights',  to: '/insights',             Icon: BarChartIcon  },
+  { label: 'Dashboard', to: '/', end: true, Icon: DashboardIcon },
+  { label: 'Employees', to: '/employees', Icon: PeopleIcon },
+  { label: 'Insights', to: '/insights', Icon: BarChartIcon },
 ];
 
 export default function AppShell() {
@@ -127,9 +128,11 @@ export default function AppShell() {
 
         {/* Footer */}
         <Box sx={{ px: 2.5, py: 2, borderTop: `1px solid ${SIDEBAR_BORDER}` }}>
-          <Typography sx={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>
-            v0.1.0
-          </Typography>
+          <Stack direction="row" alignItems="center" gap={1} justifyContent="space-between">
+            <Typography sx={{ fontSize: 13, color: SIDEBAR_TEXT }}>HR Manager</Typography>
+            <SettingsIcon sx={{ fontSize: 16, color: SIDEBAR_TEXT }} />
+          </Stack>
+          <Typography sx={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>v0.1.0</Typography>
         </Box>
       </Box>
 

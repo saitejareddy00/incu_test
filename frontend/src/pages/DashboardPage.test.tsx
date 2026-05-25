@@ -1,6 +1,7 @@
 import { ThemeProvider, createTheme } from '@mui/material';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
@@ -50,28 +51,39 @@ describe('DashboardPage', () => {
   it('renders total headcount from overview API', async () => {
     renderPage();
     await waitFor(() => expect(screen.getByText('42')).toBeInTheDocument());
-    expect(screen.getByText(/total employees/i)).toBeInTheDocument();
+    expect(screen.getByText('Active employees')).toBeInTheDocument();
   });
 
-  it('renders top countries by average salary', async () => {
+  it('renders insight highlights and what stands out section', async () => {
     renderPage();
-    await waitFor(() => expect(screen.getByText('US')).toBeInTheDocument());
-    expect(screen.getByText('GB')).toBeInTheDocument();
-    expect(screen.getByText(/top countries/i)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText(/what stands out/i)).toBeInTheDocument());
+    expect(screen.getByText(/united states leads/i)).toBeInTheDocument();
   });
 
-  it('renders top job titles by average salary', async () => {
+  it('renders countries in the default chart view', async () => {
     renderPage();
-    await waitFor(() => expect(screen.getByText('Engineer')).toBeInTheDocument());
-    expect(screen.getByText('Manager')).toBeInTheDocument();
-    expect(screen.getByText(/top job titles/i)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Countries' })).toHaveAttribute('aria-pressed', 'true'));
+    expect(screen.getByText('United Kingdom')).toBeInTheDocument();
   });
 
-  it('renders headcount by department', async () => {
+  it('switches to job titles view when tab is clicked', async () => {
     renderPage();
-    await waitFor(() => expect(screen.getByText('Engineering')).toBeInTheDocument());
-    expect(screen.getByText('Sales')).toBeInTheDocument();
-    expect(screen.getByText(/headcount by department/i)).toBeInTheDocument();
+    await waitFor(() => screen.getByRole('button', { name: 'Countries' }));
+
+    await userEvent.click(screen.getByRole('button', { name: 'Job titles' }));
+
+    await waitFor(() => expect(screen.getAllByText('Manager').length).toBeGreaterThan(0));
+    expect(screen.getAllByText('Engineer').length).toBeGreaterThan(0);
+  });
+
+  it('links country rows to insights', async () => {
+    renderPage();
+    await waitFor(() => screen.getByRole('button', { name: 'Countries' }));
+
+    const countryLink = screen.getAllByRole('link').find((el) =>
+      el.getAttribute('href') === '/insights?country=US',
+    );
+    expect(countryLink).toBeDefined();
   });
 
   it('shows an error message when the API fails', async () => {

@@ -1,6 +1,6 @@
 import { ThemeProvider, createTheme } from '@mui/material';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
@@ -53,18 +53,24 @@ function renderPage(initialPath = '/insights?country=US') {
   return router;
 }
 
+async function waitForCountryOverview() {
+  await waitFor(() => expect(screen.getByText(/country overview/i)).toBeInTheDocument());
+  await waitFor(() => expect(screen.getByText('10')).toBeInTheDocument());
+}
+
 describe('InsightsPage — country view', () => {
-  it('renders country-wide stat cards for the country in the URL', async () => {
+  it('renders country overview with KPI cards for the country in the URL', async () => {
     renderPage('/insights?country=US');
-    await waitFor(() => expect(screen.getByText(/country-wide/i)).toBeInTheDocument());
-    expect(screen.getByText('10')).toBeInTheDocument();
-    expect(screen.getByText(/minimum/i)).toBeInTheDocument();
-    expect(screen.getByText(/median/i)).toBeInTheDocument();
+    await waitForCountryOverview();
+    expect(screen.getByText(/headcount/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/minimum/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/median/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/salary distribution/i)).toBeInTheDocument();
   });
 
   it('re-fetches country stats when country selector changes', async () => {
     renderPage('/insights?country=US');
-    await waitFor(() => expect(screen.getByText('10')).toBeInTheDocument());
+    await waitForCountryOverview();
 
     const countryInput = screen.getByRole('combobox', { name: /country/i });
     await userEvent.clear(countryInput);
@@ -75,52 +81,53 @@ describe('InsightsPage — country view', () => {
     expect(screen.queryByText('10')).not.toBeInTheDocument();
   });
 
-  it('always renders job title dropdown, disabled until country is selected', async () => {
+  it('shows empty state until a country is selected', async () => {
     renderPage('/insights');
-    const jobInput = screen.getByLabelText(/job title/i);
-    expect(jobInput).toBeDisabled();
-    expect(screen.getByText(/filter by job title/i)).toBeInTheDocument();
+    expect(screen.getByText(/select a market to analyze/i)).toBeInTheDocument();
+    expect(screen.getByText(/choose a country above/i)).toBeInTheDocument();
   });
 
-  it('enables job title dropdown after country is selected', async () => {
+  it('renders role chips disabled until country is selected', async () => {
+    renderPage('/insights');
+    const allRoles = screen.getByRole('button', { name: /all roles/i });
+    expect(allRoles).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('loads role chips after country is selected', async () => {
     renderPage('/insights?country=US');
-    await waitFor(() => screen.getByText(/country-wide/i));
-    expect(screen.getByLabelText(/job title/i)).not.toBeDisabled();
+    await waitForCountryOverview();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Engineer' })).toBeInTheDocument());
+    expect(screen.getByRole('button', { name: 'Manager' })).toBeInTheDocument();
   });
 });
 
 describe('InsightsPage — country + job title view', () => {
-  it('shows country-wide stats and job-title stats when both are selected', async () => {
+  it('shows country overview and role focus when both are selected', async () => {
     renderPage('/insights?country=US&jobTitle=Engineer');
-    await waitFor(() => expect(screen.getByText(/country-wide/i)).toBeInTheDocument());
-    expect(screen.getByText('10')).toBeInTheDocument();
-    await waitFor(() => expect(screen.getByText(/engineer — in us/i)).toBeInTheDocument());
-    expect(screen.getByText('3')).toBeInTheDocument();
-    expect(screen.getAllByText(/average salary/i).length).toBeGreaterThanOrEqual(1);
+    await waitForCountryOverview();
+    await waitFor(() => expect(screen.getByText(/role focus — engineer/i)).toBeInTheDocument());
+    expect(screen.getAllByText(/3 employees/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/vs country average/i).length).toBeGreaterThan(0);
   });
 
-  it('shows additional job-title insights below when selected from dropdown', async () => {
+  it('shows role focus when a role chip is clicked', async () => {
     renderPage('/insights?country=US');
-    await waitFor(() => screen.getByText(/country-wide/i));
+    await waitForCountryOverview();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Manager' })).toBeInTheDocument());
 
-    const jobInput = screen.getByLabelText(/job title/i);
-    await userEvent.click(jobInput);
-    const listbox = await screen.findByRole('listbox');
-    await userEvent.click(within(listbox).getByText('Manager'));
+    await userEvent.click(screen.getByRole('button', { name: 'Manager' }));
 
-    await waitFor(() => expect(screen.getByText(/manager — in us/i)).toBeInTheDocument());
-    await waitFor(() => expect(screen.getByText('2')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/role focus — manager/i)).toBeInTheDocument());
+    expect(screen.getAllByText(/2 employees/i).length).toBeGreaterThan(0);
     expect(screen.getByText('10')).toBeInTheDocument();
   });
 
-  it('updates the URL when job title is selected from dropdown', async () => {
+  it('updates the URL when a role chip is selected', async () => {
     const router = renderPage('/insights?country=US');
-    await waitFor(() => screen.getByText(/country-wide/i));
+    await waitForCountryOverview();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Engineer' })).toBeInTheDocument());
 
-    const jobInput = screen.getByLabelText(/job title/i);
-    await userEvent.click(jobInput);
-    const listbox = await screen.findByRole('listbox');
-    await userEvent.click(within(listbox).getByText('Engineer'));
+    await userEvent.click(screen.getByRole('button', { name: 'Engineer' }));
 
     await waitFor(() => expect(router.state.location.search).toContain('jobTitle=Engineer'));
   });

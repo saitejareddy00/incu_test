@@ -95,8 +95,7 @@ describe('EmployeesPage', () => {
   it('shows total count in pagination', async () => {
     renderPage();
     await waitFor(() => screen.getByText('Alice Smith'));
-    // MUI pagination shows "1-2 of 2"
-    expect(screen.getByText(/of 2/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/of 2/i).length).toBeGreaterThan(0);
   });
 });
 

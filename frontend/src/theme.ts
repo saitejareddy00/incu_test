@@ -1,7 +1,6 @@
 import { createTheme } from '@mui/material/styles';
 
 /**
- * Visual language inspired by the Cursor dashboard:
  *  - Neutral dark sidebar (#111827)
  *  - Near-white content background (#f9fafb)
  *  - Small, clean Inter typography — no uppercase buttons
@@ -11,28 +10,28 @@ const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#111827',       // gray-900 — matches Cursor sidebar
+      main: '#111827', // gray-900 — matches Cursor sidebar
       light: '#374151',
       dark: '#030712',
       contrastText: '#ffffff',
     },
     secondary: {
-      main: '#6366f1',       // indigo-500 — subtle accent
+      main: '#6366f1', // indigo-500 — subtle accent
       contrastText: '#ffffff',
     },
     background: {
-      default: '#f9fafb',    // gray-50 — content area
+      default: '#f9fafb', // gray-50 — content area
       paper: '#ffffff',
     },
     text: {
       primary: '#111827',
-      secondary: '#6b7280',  // gray-500
+      secondary: '#6b7280', // gray-500
     },
-    divider: '#e5e7eb',      // gray-200
+    divider: '#e5e7eb', // gray-200
     success: { main: '#22c55e' },
-    error:   { main: '#ef4444' },
+    error: { main: '#ef4444' },
     warning: { main: '#f59e0b' },
-    info:    { main: '#3b82f6' },
+    info: { main: '#3b82f6' },
   },
   typography: {
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',

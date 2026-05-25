@@ -10,7 +10,11 @@ import { NotifyProvider, useNotify } from './NotifyContext';
 const theme = createTheme();
 
 function wrap(ui: React.ReactNode) {
-  return render(<ThemeProvider theme={theme}><NotifyProvider>{ui}</NotifyProvider></ThemeProvider>);
+  return render(
+    <ThemeProvider theme={theme}>
+      <NotifyProvider>{ui}</NotifyProvider>
+    </ThemeProvider>,
+  );
 }
 
 function Trigger() {
@@ -59,13 +63,19 @@ describe('LoadingOverlay', () => {
 
 describe('ErrorBanner', () => {
   it('renders the message when provided', () => {
-    render(<ThemeProvider theme={theme}><ErrorBanner message="Network error" /></ThemeProvider>);
+    render(
+      <ThemeProvider theme={theme}>
+        <ErrorBanner message="Network error" />
+      </ThemeProvider>,
+    );
     expect(screen.getByText('Network error')).toBeInTheDocument();
   });
 
   it('renders nothing when message is empty', () => {
     const { container } = render(
-      <ThemeProvider theme={theme}><ErrorBanner message="" /></ThemeProvider>,
+      <ThemeProvider theme={theme}>
+        <ErrorBanner message="" />
+      </ThemeProvider>,
     );
     expect(container.firstChild).toBeNull();
   });

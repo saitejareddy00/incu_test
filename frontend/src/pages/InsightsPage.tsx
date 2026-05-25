@@ -1,95 +1,190 @@
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import GroupsIcon from '@mui/icons-material/Groups';
+import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import {
   Autocomplete,
   Box,
-  Divider,
+  Button,
+  Chip,
   Grid,
   Paper,
   Skeleton,
+  Stack,
   TextField,
   Typography,
 } from '@mui/material';
-import { useSearchParams } from 'react-router-dom';
+import { useMemo } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useCountryJobStats, useCountryStats, useJobTitles } from '../api/hooks';
-import { ApiResponseError } from '../api/types';
+import { ApiResponseError, type CountryStats } from '../api/types';
+import { KpiCard } from '../components/KpiCard';
 import { COUNTRIES, findCountry, type Country } from '../features/employees/countries';
+import { SalaryRangeViz } from '../features/insights/SalaryRangeViz';
+import {
+  countryInsightBullets,
+  formatDeltaPct,
+  roleInsightBullets,
+} from '../features/insights/insightsHelpers';
+import { countryLabel } from '../features/dashboard/overviewInsights';
 import { ErrorBanner } from '../notifications/ErrorBanner';
 import { formatSalaryCents } from '../utils/formatSalary';
 
-function StatCard({ label, value }: { label: string; value: React.ReactNode }) {
+function FilterPanel({
+  countryOption,
+  jobTitle,
+  jobTitleOptions,
+  jobTitlesPending,
+  onCountryChange,
+  onJobTitleChange,
+}: {
+  countryOption: Country | null;
+  jobTitle: string;
+  jobTitleOptions: string[];
+  jobTitlesPending: boolean;
+  onCountryChange: (code: string) => void;
+  onJobTitleChange: (title: string) => void;
+}) {
+  const country = countryOption?.code ?? '';
+
   return (
-    <Paper variant="outlined" sx={{ p: 2.5, height: '100%' }}>
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-        {label}
+    <Paper variant="outlined" sx={{ p: 2.5 }}>
+      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2 }}>
+        Explore by market
       </Typography>
-      <Typography variant="h6" sx={{ fontWeight: 600 }}>
-        {value}
-      </Typography>
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={5}>
+          <Autocomplete<Country>
+            size="small"
+            options={COUNTRIES}
+            value={countryOption}
+            getOptionLabel={(o) => `${o.name} (${o.code})`}
+            isOptionEqualToValue={(o, v) => o.code === v.code}
+            onChange={(_e, option) => onCountryChange(option?.code ?? '')}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Country"
+                inputProps={{ ...params.inputProps, 'aria-label': 'country' }}
+              />
+            )}
+          />
+        </Grid>
+        <Grid item xs={12} md={7}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+            Role (optional)
+          </Typography>
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            <Chip
+              label="All roles"
+              size="small"
+              variant={!jobTitle ? 'filled' : 'outlined'}
+              color={!jobTitle ? 'secondary' : 'default'}
+              onClick={() => onJobTitleChange('')}
+              disabled={!country}
+              sx={{ cursor: country ? 'pointer' : 'default' }}
+            />
+            {jobTitlesPending && country && (
+              <Chip label="Loading roles…" size="small" variant="outlined" />
+            )}
+            {country &&
+              jobTitleOptions.map((title) => (
+                <Chip
+                  key={title}
+                  label={title}
+                  size="small"
+                  variant={jobTitle === title ? 'filled' : 'outlined'}
+                  color={jobTitle === title ? 'secondary' : 'default'}
+                  onClick={() => onJobTitleChange(jobTitle === title ? '' : title)}
+                  sx={{ cursor: 'pointer' }}
+                />
+              ))}
+          </Stack>
+        </Grid>
+      </Grid>
     </Paper>
   );
 }
 
-function CountryStatsSection({
-  country,
-  countryLabel,
-}: {
-  country: string;
-  countryLabel: string;
-}) {
-  const { data, isPending, error } = useCountryStats(country);
-
-  const errorMessage =
-    error instanceof ApiResponseError
-      ? error.message
-      : error instanceof Error
-        ? error.message
-        : null;
-
-  if (isPending) {
-    return (
-      <Grid container spacing={2}>
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Grid item xs={6} sm={4} md={2} key={i}>
-            <Skeleton variant="rectangular" height={72} sx={{ borderRadius: 1 }} />
-          </Grid>
-        ))}
-      </Grid>
-    );
-  }
-
-  if (errorMessage) return <ErrorBanner message={errorMessage} />;
-  if (!data) return null;
+function CountryOverview({ stats, label }: { stats: CountryStats; label: string }) {
+  const bullets = useMemo(() => countryInsightBullets(stats), [stats]);
 
   return (
-    <Box>
-      <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>
-        {countryLabel} — country-wide
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+        Country overview
       </Typography>
       <Grid container spacing={2}>
-        <Grid item xs={6} sm={4} md={2}>
-          <StatCard label="Employees" value={data.count.toLocaleString()} />
+        <Grid item xs={12} lg={5}>
+          <SalaryRangeViz min={stats.min} max={stats.max} avg={stats.avg} median={stats.median} />
         </Grid>
-        <Grid item xs={6} sm={4} md={2}>
-          <StatCard label="Minimum" value={formatSalaryCents(data.min)} />
-        </Grid>
-        <Grid item xs={6} sm={4} md={2}>
-          <StatCard label="Maximum" value={formatSalaryCents(data.max)} />
-        </Grid>
-        <Grid item xs={6} sm={4} md={2}>
-          <StatCard label="Average" value={formatSalaryCents(data.avg)} />
-        </Grid>
-        <Grid item xs={6} sm={4} md={2}>
-          <StatCard label="Median" value={formatSalaryCents(data.median)} />
+        <Grid item xs={12} lg={7}>
+          <Grid container spacing={2}>
+            <Grid item xs={6} sm={4}>
+              <KpiCard
+                label="Headcount"
+                value={stats.count.toLocaleString()}
+                icon={<GroupsIcon fontSize="small" />}
+              />
+            </Grid>
+            <Grid item xs={6} sm={4}>
+              <KpiCard
+                label="Average"
+                value={formatSalaryCents(stats.avg)}
+                icon={<ShowChartIcon fontSize="small" />}
+              />
+            </Grid>
+            <Grid item xs={6} sm={4}>
+              <KpiCard
+                label="Median"
+                value={formatSalaryCents(stats.median)}
+                icon={<TrendingUpIcon fontSize="small" />}
+              />
+            </Grid>
+            <Grid item xs={6} sm={4}>
+              <KpiCard label="Minimum" value={formatSalaryCents(stats.min)} detail="Floor" />
+            </Grid>
+            <Grid item xs={6} sm={4}>
+              <KpiCard label="Maximum" value={formatSalaryCents(stats.max)} detail="Ceiling" />
+            </Grid>
+          </Grid>
         </Grid>
       </Grid>
+
+      {bullets.length > 0 && (
+        <Paper
+          variant="outlined"
+          sx={{ p: 2, bgcolor: 'rgba(99, 102, 241, 0.04)', borderColor: 'rgba(99, 102, 241, 0.2)' }}
+        >
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 1 }}>
+            <LightbulbOutlinedIcon sx={{ fontSize: 16, color: 'secondary.main' }} />
+            <Typography variant="caption" sx={{ fontWeight: 600 }}>
+              {label} insights
+            </Typography>
+          </Box>
+          <Stack component="ul" spacing={0.5} sx={{ m: 0, pl: 2 }}>
+            {bullets.map((b, i) => (
+              <Typography key={i} component="li" variant="body2" color="text.secondary">
+                {b}
+              </Typography>
+            ))}
+          </Stack>
+        </Paper>
+      )}
     </Box>
   );
 }
 
-function JobTitleStatsSection({
+function RoleFocus({
   country,
+  countryStats,
   jobTitle,
 }: {
   country: string;
+  countryStats: CountryStats;
   jobTitle: string;
 }) {
   const { data, isPending, error } = useCountryJobStats(country, jobTitle);
@@ -104,9 +199,9 @@ function JobTitleStatsSection({
   if (isPending) {
     return (
       <Grid container spacing={2}>
-        {Array.from({ length: 2 }).map((_, i) => (
-          <Grid item xs={6} sm={4} md={3} key={i}>
-            <Skeleton variant="rectangular" height={72} sx={{ borderRadius: 1 }} />
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Grid item xs={12} sm={4} key={i}>
+            <Skeleton variant="rectangular" height={88} sx={{ borderRadius: 1 }} />
           </Grid>
         ))}
       </Grid>
@@ -116,19 +211,58 @@ function JobTitleStatsSection({
   if (errorMessage) return <ErrorBanner message={errorMessage} />;
   if (!data) return null;
 
+  const delta = formatDeltaPct(data.avg, countryStats.avg);
+  const aboveAvg = data.avg >= countryStats.avg;
+  const bullets = roleInsightBullets(jobTitle, data, countryStats);
+
   return (
-    <Box>
-      <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>
-        {jobTitle} — in {country}
-      </Typography>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <WorkOutlineIcon sx={{ fontSize: 18, color: 'secondary.main' }} />
+        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+          Role focus — {jobTitle}
+        </Typography>
+      </Box>
+
       <Grid container spacing={2}>
-        <Grid item xs={6} sm={4} md={3}>
-          <StatCard label="Average Salary" value={formatSalaryCents(data.avg)} />
+        <Grid item xs={12} sm={4}>
+          <KpiCard
+            label="Role average"
+            value={formatSalaryCents(data.avg)}
+            detail={`${data.count} employees`}
+            icon={<WorkOutlineIcon fontSize="small" />}
+          />
         </Grid>
-        <Grid item xs={6} sm={4} md={3}>
-          <StatCard label="Employees" value={data.count.toLocaleString()} />
+        <Grid item xs={12} sm={4}>
+          <KpiCard
+            label="vs country average"
+            value={delta}
+            detail={`Country avg ${formatSalaryCents(countryStats.avg)}`}
+            icon={
+              aboveAvg ? <TrendingUpIcon fontSize="small" /> : <TrendingDownIcon fontSize="small" />
+            }
+            accent={aboveAvg ? '#22c55e' : '#f59e0b'}
+          />
+        </Grid>
+        <Grid item xs={12} sm={4}>
+          <KpiCard
+            label="Share of country"
+            value={`${Math.round((data.count / countryStats.count) * 100)}%`}
+            detail={`${data.count} of ${countryStats.count} people`}
+            icon={<GroupsIcon fontSize="small" />}
+          />
         </Grid>
       </Grid>
+
+      <Paper variant="outlined" sx={{ p: 2, bgcolor: 'background.paper' }}>
+        <Stack component="ul" spacing={0.5} sx={{ m: 0, pl: 2 }}>
+          {bullets.map((b, i) => (
+            <Typography key={i} component="li" variant="body2" color="text.secondary">
+              {b}
+            </Typography>
+          ))}
+        </Stack>
+      </Paper>
     </Box>
   );
 }
@@ -156,78 +290,110 @@ export default function InsightsPage() {
 
   const country = searchParams.get('country') ?? '';
   const jobTitle = searchParams.get('jobTitle') ?? '';
-  const countryOption = country ? findCountry(country) : null;
-  const countryLabel = countryOption ? `${countryOption.name} (${country})` : country;
+  const countryOption = country ? (findCountry(country) ?? null) : null;
+  const label = countryOption ? countryLabel(country) : '';
 
+  const countryQuery = useCountryStats(country);
   const { data: jobTitlesData, isPending: jobTitlesPending } = useJobTitles(country);
-  const jobTitleOptions = jobTitlesData?.jobTitles ?? [];
+
+  const countryError =
+    countryQuery.error instanceof ApiResponseError
+      ? countryQuery.error.message
+      : countryQuery.error instanceof Error
+        ? countryQuery.error.message
+        : null;
 
   return (
-    <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Box>
-        <Typography variant="h6">Insights</Typography>
-        <Typography variant="body2" color="text.secondary">
-          Salary statistics by country and job title
-        </Typography>
-      </Box>
+    <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+      {/* Hero */}
+      <Paper
+        sx={{
+          p: 3,
+          background: country
+            ? 'linear-gradient(135deg, #111827 0%, #1e3a5f 50%, #312e81 100%)'
+            : 'linear-gradient(135deg, #111827 0%, #1f2937 100%)',
+          color: '#f9fafb',
+          borderRadius: 2,
+          border: 'none',
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: 2,
+          }}
+        >
+          <Box>
+            <Typography variant="overline" sx={{ color: '#a5b4fc', letterSpacing: '0.12em' }}>
+              Compensation insights
+            </Typography>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: '#fff', mt: 0.5 }}>
+              {country ? label : 'Select a market to analyze'}
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#9ca3af', mt: 1 }}>
+              {country
+                ? 'Compare country-wide pay bands, then drill into a specific role.'
+                : 'Pick a country to load salary statistics and role-level benchmarks.'}
+            </Typography>
+          </Box>
+          <Button
+            component={Link}
+            to="/"
+            size="small"
+            startIcon={<ArrowBackIcon />}
+            sx={{ color: '#e5e7eb', borderColor: 'rgba(255,255,255,0.2)', flexShrink: 0 }}
+            variant="outlined"
+          >
+            Dashboard
+          </Button>
+        </Box>
+      </Paper>
 
-      <Autocomplete<Country>
-        size="small"
-        options={COUNTRIES}
-        value={countryOption}
-        getOptionLabel={(o) => `${o.name} (${o.code})`}
-        isOptionEqualToValue={(o, v) => o.code === v.code}
-        onChange={(_e, option) => updateParams({ country: option?.code ?? '', jobTitle: '' })}
-        sx={{ maxWidth: 320 }}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label="Country"
-            inputProps={{ ...params.inputProps, 'aria-label': 'country' }}
-          />
-        )}
+      <FilterPanel
+        countryOption={countryOption}
+        jobTitle={jobTitle}
+        jobTitleOptions={jobTitlesData?.jobTitles ?? []}
+        jobTitlesPending={jobTitlesPending}
+        onCountryChange={(code) => updateParams({ country: code, jobTitle: '' })}
+        onJobTitleChange={(title) => updateParams({ jobTitle: title })}
       />
 
       {!country && (
-        <Typography variant="body2" color="text.secondary">
-          Select a country to view salary insights.
-        </Typography>
+        <Paper variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
+          <ShowChartIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 1 }} />
+          <Typography variant="body2" color="text.secondary">
+            Choose a country above to view interactive compensation insights.
+          </Typography>
+        </Paper>
       )}
 
-      {country && <CountryStatsSection country={country} countryLabel={countryLabel} />}
+      {country && countryQuery.isPending && (
+        <Stack spacing={2}>
+          <Skeleton variant="rectangular" height={160} sx={{ borderRadius: 2 }} />
+          <Skeleton variant="rectangular" height={120} sx={{ borderRadius: 1 }} />
+        </Stack>
+      )}
 
-      <Divider sx={{ my: 1 }} />
+      {country && countryError && <ErrorBanner message={countryError} />}
 
-      <Box>
-        <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>
-          Filter by job title
-        </Typography>
-        <Autocomplete
-          size="small"
-          disabled={!country}
-          options={jobTitleOptions}
-          value={country && jobTitle ? jobTitle : null}
-          loading={jobTitlesPending}
-          onChange={(_e, value) => updateParams({ jobTitle: value ?? '' })}
-          sx={{ maxWidth: 320 }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Job Title"
-              placeholder={country ? 'Select a job title' : 'Select a country first'}
-              inputProps={{ ...params.inputProps, 'aria-label': 'job title' }}
-            />
+      {country && countryQuery.data && !countryQuery.isPending && (
+        <>
+          <CountryOverview stats={countryQuery.data} label={label} />
+
+          {jobTitle && (
+            <Paper variant="outlined" sx={{ p: 2.5 }}>
+              <RoleFocus country={country} countryStats={countryQuery.data} jobTitle={jobTitle} />
+            </Paper>
           )}
-        />
-        {country && !jobTitle && (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            Select a job title to see role-specific salary insights below.
-          </Typography>
-        )}
-      </Box>
 
-      {country && jobTitle && (
-        <JobTitleStatsSection country={country} jobTitle={jobTitle} />
+          {!jobTitle && jobTitlesData && jobTitlesData.jobTitles.length > 0 && (
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+              Select a role chip above to compare against the country benchmark.
+            </Typography>
+          )}
+        </>
       )}
     </Box>
   );
