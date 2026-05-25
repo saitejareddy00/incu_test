@@ -10,6 +10,14 @@ const CountryParamSchema = z.object({
     .regex(/^[A-Za-z]{2}$/, 'Must contain only letters'),
 });
 
+const JobTitlesQuerySchema = z.object({
+  country: z
+    .string()
+    .length(2, 'Must be a 2-letter ISO-3166 alpha-2 code')
+    .regex(/^[A-Za-z]{2}$/, 'Must contain only letters')
+    .optional(),
+});
+
 function toValidationError(err: ZodError): ValidationError {
   const msg = err.errors.map((e) => `${e.path.join('.') || 'param'}: ${e.message}`).join('; ');
   return new ValidationError(msg);
@@ -25,6 +33,17 @@ export function createInsightsRouter(service: InsightsService): Router {
       res.json(metrics);
     } catch (err) {
       next(err);
+    }
+  });
+
+  // ── GET /api/insights/job-titles ───────────────────────────────────────────
+  router.get('/job-titles', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const query = JobTitlesQuerySchema.parse(req.query);
+      const titles = await service.jobTitles(query.country?.toUpperCase());
+      res.json({ jobTitles: titles });
+    } catch (err) {
+      next(err instanceof ZodError ? toValidationError(err) : err);
     }
   });
 

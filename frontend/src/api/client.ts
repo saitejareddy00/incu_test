@@ -75,6 +75,11 @@ export const insightsClient = {
     return request('/insights/overview');
   },
 
+  jobTitles(country?: string): Promise<{ jobTitles: string[] }> {
+    const q = country ? `?country=${encodeURIComponent(country)}` : '';
+    return request(`/insights/job-titles${q}`);
+  },
+
   countryStats(country: string): Promise<CountryStats> {
     return request(`/insights/country/${encodeURIComponent(country)}`);
   },

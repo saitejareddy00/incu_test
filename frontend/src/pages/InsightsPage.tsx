@@ -1,17 +1,15 @@
 import {
   Autocomplete,
   Box,
+  Divider,
   Grid,
   Paper,
   Skeleton,
-  Stack,
   TextField,
   Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useCountryJobStats, useCountryStats } from '../api/hooks';
-import { useDebouncedValue } from '../hooks/useDebouncedValue';
+import { useCountryJobStats, useCountryStats, useJobTitles } from '../api/hooks';
 import { ApiResponseError } from '../api/types';
 import { COUNTRIES, findCountry, type Country } from '../features/employees/countries';
 import { ErrorBanner } from '../notifications/ErrorBanner';
@@ -27,6 +25,111 @@ function StatCard({ label, value }: { label: string; value: React.ReactNode }) {
         {value}
       </Typography>
     </Paper>
+  );
+}
+
+function CountryStatsSection({
+  country,
+  countryLabel,
+}: {
+  country: string;
+  countryLabel: string;
+}) {
+  const { data, isPending, error } = useCountryStats(country);
+
+  const errorMessage =
+    error instanceof ApiResponseError
+      ? error.message
+      : error instanceof Error
+        ? error.message
+        : null;
+
+  if (isPending) {
+    return (
+      <Grid container spacing={2}>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Grid item xs={6} sm={4} md={2} key={i}>
+            <Skeleton variant="rectangular" height={72} sx={{ borderRadius: 1 }} />
+          </Grid>
+        ))}
+      </Grid>
+    );
+  }
+
+  if (errorMessage) return <ErrorBanner message={errorMessage} />;
+  if (!data) return null;
+
+  return (
+    <Box>
+      <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>
+        {countryLabel} — country-wide
+      </Typography>
+      <Grid container spacing={2}>
+        <Grid item xs={6} sm={4} md={2}>
+          <StatCard label="Employees" value={data.count.toLocaleString()} />
+        </Grid>
+        <Grid item xs={6} sm={4} md={2}>
+          <StatCard label="Minimum" value={formatSalaryCents(data.min)} />
+        </Grid>
+        <Grid item xs={6} sm={4} md={2}>
+          <StatCard label="Maximum" value={formatSalaryCents(data.max)} />
+        </Grid>
+        <Grid item xs={6} sm={4} md={2}>
+          <StatCard label="Average" value={formatSalaryCents(data.avg)} />
+        </Grid>
+        <Grid item xs={6} sm={4} md={2}>
+          <StatCard label="Median" value={formatSalaryCents(data.median)} />
+        </Grid>
+      </Grid>
+    </Box>
+  );
+}
+
+function JobTitleStatsSection({
+  country,
+  jobTitle,
+}: {
+  country: string;
+  jobTitle: string;
+}) {
+  const { data, isPending, error } = useCountryJobStats(country, jobTitle);
+
+  const errorMessage =
+    error instanceof ApiResponseError
+      ? error.message
+      : error instanceof Error
+        ? error.message
+        : null;
+
+  if (isPending) {
+    return (
+      <Grid container spacing={2}>
+        {Array.from({ length: 2 }).map((_, i) => (
+          <Grid item xs={6} sm={4} md={3} key={i}>
+            <Skeleton variant="rectangular" height={72} sx={{ borderRadius: 1 }} />
+          </Grid>
+        ))}
+      </Grid>
+    );
+  }
+
+  if (errorMessage) return <ErrorBanner message={errorMessage} />;
+  if (!data) return null;
+
+  return (
+    <Box>
+      <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>
+        {jobTitle} — in {country}
+      </Typography>
+      <Grid container spacing={2}>
+        <Grid item xs={6} sm={4} md={3}>
+          <StatCard label="Average Salary" value={formatSalaryCents(data.avg)} />
+        </Grid>
+        <Grid item xs={6} sm={4} md={3}>
+          <StatCard label="Employees" value={data.count.toLocaleString()} />
+        </Grid>
+      </Grid>
+    </Box>
   );
 }
 
@@ -52,74 +155,38 @@ export default function InsightsPage() {
   }
 
   const country = searchParams.get('country') ?? '';
-  const jobTitleParam = searchParams.get('jobTitle') ?? '';
-  const [jobTitleInput, setJobTitleInput] = useState(jobTitleParam);
-  const debouncedJobTitle = useDebouncedValue(jobTitleInput, 300);
+  const jobTitle = searchParams.get('jobTitle') ?? '';
+  const countryOption = country ? findCountry(country) : null;
+  const countryLabel = countryOption ? `${countryOption.name} (${country})` : country;
 
-  useEffect(() => {
-    setJobTitleInput(jobTitleParam);
-  }, [jobTitleParam]);
-
-  useEffect(() => {
-    if (debouncedJobTitle === jobTitleParam) return;
-    updateParams({ jobTitle: debouncedJobTitle });
-  }, [debouncedJobTitle, jobTitleParam]);
-
-  const isCombined = Boolean(country && debouncedJobTitle);
-
-  const countryQuery = useCountryStats(country);
-  const combinedQuery = useCountryJobStats(country, debouncedJobTitle);
-
-  const { data, isPending, error } = isCombined ? combinedQuery : countryQuery;
-
-  const errorMessage =
-    error instanceof ApiResponseError
-      ? error.message
-      : error instanceof Error
-        ? error.message
-        : null;
-
-  const skeletonCount = isCombined ? 2 : 5;
+  const { data: jobTitlesData, isPending: jobTitlesPending } = useJobTitles(country);
+  const jobTitleOptions = jobTitlesData?.jobTitles ?? [];
 
   return (
     <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Box>
         <Typography variant="h6">Insights</Typography>
         <Typography variant="body2" color="text.secondary">
-          {isCombined
-            ? 'Salary statistics by country and job title'
-            : 'Salary statistics by country'}
+          Salary statistics by country and job title
         </Typography>
       </Box>
 
-      <Stack direction="row" spacing={1.5} flexWrap="wrap">
-        <Autocomplete<Country>
-          size="small"
-          options={COUNTRIES}
-          value={country ? (findCountry(country) ?? null) : null}
-          getOptionLabel={(o) => `${o.name} (${o.code})`}
-          isOptionEqualToValue={(o, v) => o.code === v.code}
-          onChange={(_e, option) => updateParams({ country: option?.code ?? '' })}
-          sx={{ minWidth: 280 }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Country"
-              inputProps={{ ...params.inputProps, 'aria-label': 'country' }}
-            />
-          )}
-        />
-        <TextField
-          size="small"
-          label="Job Title"
-          placeholder="e.g. Engineer"
-          value={jobTitleInput}
-          onChange={(e) => setJobTitleInput(e.target.value)}
-          inputProps={{ 'aria-label': 'job title' }}
-          sx={{ minWidth: 200 }}
-          disabled={!country}
-        />
-      </Stack>
+      <Autocomplete<Country>
+        size="small"
+        options={COUNTRIES}
+        value={countryOption}
+        getOptionLabel={(o) => `${o.name} (${o.code})`}
+        isOptionEqualToValue={(o, v) => o.code === v.code}
+        onChange={(_e, option) => updateParams({ country: option?.code ?? '', jobTitle: '' })}
+        sx={{ maxWidth: 320 }}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label="Country"
+            inputProps={{ ...params.inputProps, 'aria-label': 'country' }}
+          />
+        )}
+      />
 
       {!country && (
         <Typography variant="body2" color="text.secondary">
@@ -127,47 +194,40 @@ export default function InsightsPage() {
         </Typography>
       )}
 
-      {country && isPending && (
-        <Grid container spacing={2}>
-          {Array.from({ length: skeletonCount }).map((_, i) => (
-            <Grid item xs={6} sm={4} md={3} key={i}>
-              <Skeleton variant="rectangular" height={72} sx={{ borderRadius: 1 }} />
-            </Grid>
-          ))}
-        </Grid>
-      )}
+      {country && <CountryStatsSection country={country} countryLabel={countryLabel} />}
 
-      {country && errorMessage && <ErrorBanner message={errorMessage} />}
+      <Divider sx={{ my: 1 }} />
 
-      {country && data && !isPending && isCombined && 'avg' in data && (
-        <Grid container spacing={2}>
-          <Grid item xs={6} sm={4} md={3}>
-            <StatCard label="Average Salary" value={formatSalaryCents(data.avg)} />
-          </Grid>
-          <Grid item xs={6} sm={4} md={3}>
-            <StatCard label="Employees" value={data.count.toLocaleString()} />
-          </Grid>
-        </Grid>
-      )}
+      <Box>
+        <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600 }}>
+          Filter by job title
+        </Typography>
+        <Autocomplete
+          size="small"
+          disabled={!country}
+          options={jobTitleOptions}
+          value={country && jobTitle ? jobTitle : null}
+          loading={jobTitlesPending}
+          onChange={(_e, value) => updateParams({ jobTitle: value ?? '' })}
+          sx={{ maxWidth: 320 }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Job Title"
+              placeholder={country ? 'Select a job title' : 'Select a country first'}
+              inputProps={{ ...params.inputProps, 'aria-label': 'job title' }}
+            />
+          )}
+        />
+        {country && !jobTitle && (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            Select a job title to see role-specific salary insights below.
+          </Typography>
+        )}
+      </Box>
 
-      {country && data && !isPending && !isCombined && 'min' in data && (
-        <Grid container spacing={2}>
-          <Grid item xs={6} sm={4} md={2}>
-            <StatCard label="Employees" value={data.count.toLocaleString()} />
-          </Grid>
-          <Grid item xs={6} sm={4} md={2}>
-            <StatCard label="Minimum" value={formatSalaryCents(data.min)} />
-          </Grid>
-          <Grid item xs={6} sm={4} md={2}>
-            <StatCard label="Maximum" value={formatSalaryCents(data.max)} />
-          </Grid>
-          <Grid item xs={6} sm={4} md={2}>
-            <StatCard label="Average" value={formatSalaryCents(data.avg)} />
-          </Grid>
-          <Grid item xs={6} sm={4} md={2}>
-            <StatCard label="Median" value={formatSalaryCents(data.median)} />
-          </Grid>
-        </Grid>
+      {country && jobTitle && (
+        <JobTitleStatsSection country={country} jobTitle={jobTitle} />
       )}
     </Box>
   );

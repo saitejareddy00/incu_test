@@ -2,6 +2,7 @@ import pg from 'pg';
 import { NotFoundError } from '../app/errors';
 import { getCountryJobStats, type CountryJobStats } from './repository/country-job-stats';
 import { getCountryStats, type CountryStats } from './repository/country-stats';
+import { listJobTitles } from './repository/job-titles';
 import { getOverviewMetrics, type OverviewMetrics } from './repository/overview';
 
 export class InsightsService {
@@ -37,5 +38,14 @@ export class InsightsService {
     // pool.query() acquires + releases a connection per query internally;
     // no manual client lifecycle needed here.
     return getOverviewMetrics(this.pool);
+  }
+
+  async jobTitles(country?: string): Promise<string[]> {
+    const client = await this.pool.connect();
+    try {
+      return await listJobTitles(client, country);
+    } finally {
+      client.release();
+    }
   }
 }

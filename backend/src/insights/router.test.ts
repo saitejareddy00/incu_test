@@ -47,6 +47,34 @@ describe('GET /api/insights/overview', () => {
   });
 });
 
+// ── GET /api/insights/job-titles ──────────────────────────────────────────────
+
+describe('GET /api/insights/job-titles', () => {
+  it('returns distinct job titles for active employees', async () => {
+    await request(app).post('/api/employees').send(validEmployee);
+    await request(app)
+      .post('/api/employees')
+      .send({ ...validEmployee, email: 'bob@example.com', jobTitle: 'Manager' });
+
+    const res = await request(app).get('/api/insights/job-titles');
+
+    expect(res.status).toBe(200);
+    expect(res.body.jobTitles).toEqual(expect.arrayContaining(['Engineer', 'Manager']));
+  });
+
+  it('filters job titles by country query param', async () => {
+    await request(app).post('/api/employees').send(validEmployee);
+    await request(app)
+      .post('/api/employees')
+      .send({ ...validEmployee, email: 'bob@example.com', country: 'GB', jobTitle: 'Manager' });
+
+    const res = await request(app).get('/api/insights/job-titles').query({ country: 'US' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.jobTitles).toEqual(['Engineer']);
+  });
+});
+
 // ── GET /api/insights/country/:country ────────────────────────────────────────
 
 describe('GET /api/insights/country/:country', () => {

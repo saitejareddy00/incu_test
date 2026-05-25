@@ -16,6 +16,7 @@ export const queryKeys = {
   },
   insights: {
     overview: ['insights', 'overview'] as const,
+    jobTitles: (country?: string) => ['insights', 'jobTitles', country ?? ''] as const,
     country: (country: string) => ['insights', 'country', country] as const,
     countryJob: (country: string, jobTitle: string) =>
       ['insights', 'country', country, 'job', jobTitle] as const,
@@ -71,6 +72,14 @@ export function useOverviewMetrics() {
   return useQuery({
     queryKey: queryKeys.insights.overview,
     queryFn: () => insightsClient.overview(),
+  });
+}
+
+export function useJobTitles(country: string) {
+  return useQuery({
+    queryKey: queryKeys.insights.jobTitles(country),
+    queryFn: () => insightsClient.jobTitles(country),
+    enabled: Boolean(country),
   });
 }
 
