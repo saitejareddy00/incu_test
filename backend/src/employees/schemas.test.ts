@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  CreateEmployeeInputSchema,
-  UpdateEmployeeInputSchema,
-  EmployeeRowSchema,
-} from './schemas';
+import { CreateEmployeeInputSchema, UpdateEmployeeInputSchema, EmployeeRowSchema } from './schemas';
 
 // ── CreateEmployeeInputSchema ────────────────────────────────────────────────
 
@@ -133,7 +129,8 @@ describe('EmployeeRowSchema', () => {
   });
 
   it('requires createdAt and updatedAt', () => {
-    const { createdAt: _c, ...withoutCreatedAt } = validRow;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { createdAt, ...withoutCreatedAt } = validRow;
     expect(EmployeeRowSchema.safeParse(withoutCreatedAt).success).toBe(false);
   });
 });
