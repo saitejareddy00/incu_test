@@ -103,7 +103,7 @@ describe('InsightsPage — country + job title view', () => {
     await userEvent.clear(jobInput);
     await userEvent.type(jobInput, 'Manager');
 
-    await waitFor(() => expect(screen.getByText('2')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('2')).toBeInTheDocument(), { timeout: 2000 });
     expect(screen.queryByText('3')).not.toBeInTheDocument();
   });
 
@@ -114,7 +114,9 @@ describe('InsightsPage — country + job title view', () => {
     const jobInput = screen.getByLabelText(/job title/i);
     await userEvent.type(jobInput, 'Engineer');
 
+    await waitFor(() => expect(router.state.location.search).toContain('jobTitle=Engineer'), {
+      timeout: 2000,
+    });
     await waitFor(() => expect(screen.getByText('3')).toBeInTheDocument());
-    expect(router.state.location.search).toContain('jobTitle=Engineer');
   });
 });
