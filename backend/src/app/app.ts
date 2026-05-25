@@ -4,6 +4,8 @@ import pinoHttp from 'pino-http';
 import { AppError, NotFoundError } from './errors';
 import { createEmployeeRouter } from '../employees/router';
 import { EmployeeService } from '../employees/service';
+import { createInsightsRouter } from '../insights/router';
+import { InsightsService } from '../insights/service';
 
 export function createApp(pool?: pg.Pool) {
   const app = express();
@@ -19,6 +21,7 @@ export function createApp(pool?: pg.Pool) {
   // ── Employee routes ───────────────────────────────────────────────────────
   if (pool) {
     app.use('/api/employees', createEmployeeRouter(new EmployeeService(pool)));
+    app.use('/api/insights', createInsightsRouter(new InsightsService(pool)));
   }
 
   // ── Test-only error trigger (stripped in production build) ────────────────
