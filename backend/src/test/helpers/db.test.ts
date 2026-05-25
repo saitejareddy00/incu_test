@@ -24,28 +24,24 @@ describe('withTestDb', () => {
       insertedId = rows[0].id;
 
       // Visible inside the transaction
-      const { rowCount } = await client.query(
-        'SELECT 1 FROM employees WHERE id = $1',
-        [insertedId],
-      );
+      const { rowCount } = await client.query('SELECT 1 FROM employees WHERE id = $1', [
+        insertedId,
+      ]);
       expect(rowCount).toBe(1);
     });
 
     // Must be absent after rollback — use a fresh transaction to verify
     await withTestDb(async (client) => {
-      const { rowCount } = await client.query(
-        'SELECT 1 FROM employees WHERE id = $1',
-        [insertedId],
-      );
+      const { rowCount } = await client.query('SELECT 1 FROM employees WHERE id = $1', [
+        insertedId,
+      ]);
       expect(rowCount).toBe(0);
     });
   });
 
   it('surfaces errors thrown inside the callback', async () => {
-    await expect(
-      withTestDb(async () => {
-        throw new Error('inner error');
-      }),
-    ).rejects.toThrow('inner error');
+    await expect(withTestDb(() => Promise.reject(new Error('inner error')))).rejects.toThrow(
+      'inner error',
+    );
   });
 });
