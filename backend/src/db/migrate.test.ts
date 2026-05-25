@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -19,29 +19,30 @@ function makeTmpMigrationsDir(files: Record<string, string>): string {
 
 /** Builds a mock pg.PoolClient whose query() can be asserted on. */
 function makeMockClient(appliedMigrations: string[] = []) {
-  const executedSql: string[] = [];
-
-  const query = vi.fn(async (sql: string) => {
-    executedSql.push(sql.trim());
-
+  const query = vi.fn((sql: string) => {
     if (/SELECT filename FROM schema_migrations/.test(sql)) {
-      return { rows: appliedMigrations.map((filename) => ({ filename })), rowCount: appliedMigrations.length };
+      return Promise.resolve({
+        rows: appliedMigrations.map((filename) => ({ filename })),
+        rowCount: appliedMigrations.length,
+      });
     }
-    return { rows: [], rowCount: 0 };
+    return Promise.resolve({ rows: [], rowCount: 0 });
   });
 
   const release = vi.fn();
 
-  return { query, release, executedSql };
+  return { query, release };
 }
 
 /** Builds a mock pg.Pool whose connect() returns the provided mock client. */
 function makeMockPool(mockClient: ReturnType<typeof makeMockClient>) {
   return {
-    connect: vi.fn(async () => ({
-      query: mockClient.query,
-      release: mockClient.release,
-    })),
+    connect: vi.fn(() =>
+      Promise.resolve({
+        query: mockClient.query,
+        release: mockClient.release,
+      }),
+    ),
   };
 }
 
@@ -67,11 +68,13 @@ describe('runMigrations', () => {
 
     await runMigrations(pool as never, tmpDir);
 
-    const insertCalls = client.executedSql.filter((s) => s.startsWith('INSERT INTO schema_migrations'));
+    const insertCalls = client.query.mock.calls.filter(([sql]: [string]) =>
+      sql.trim().startsWith('INSERT INTO schema_migrations'),
+    );
     expect(insertCalls).toHaveLength(2);
-    // First insert should be for 001, second for 002
-    expect(insertCalls[0]).toContain('001_create_foo.sql');
-    expect(insertCalls[1]).toContain('002_add_index.sql');
+    // params[0] is the filename — order must be lexicographic
+    expect(insertCalls[0][1]).toContain('001_create_foo.sql');
+    expect(insertCalls[1][1]).toContain('002_add_index.sql');
   });
 
   it('skips already-applied migrations', async () => {
@@ -85,9 +88,11 @@ describe('runMigrations', () => {
 
     await runMigrations(pool as never, tmpDir);
 
-    const insertCalls = client.executedSql.filter((s) => s.startsWith('INSERT INTO schema_migrations'));
+    const insertCalls = client.query.mock.calls.filter(([sql]: [string]) =>
+      sql.trim().startsWith('INSERT INTO schema_migrations'),
+    );
     expect(insertCalls).toHaveLength(1);
-    expect(insertCalls[0]).toContain('002_add_index.sql');
+    expect(insertCalls[0][1]).toContain('002_add_index.sql');
   });
 
   it('is idempotent — running twice with all applied does nothing', async () => {
@@ -101,7 +106,9 @@ describe('runMigrations', () => {
     await runMigrations(pool as never, tmpDir);
     await runMigrations(pool as never, tmpDir);
 
-    const insertCalls = client.executedSql.filter((s) => s.startsWith('INSERT INTO schema_migrations'));
+    const insertCalls = client.query.mock.calls.filter(([sql]: [string]) =>
+      sql.trim().startsWith('INSERT INTO schema_migrations'),
+    );
     expect(insertCalls).toHaveLength(0);
   });
 
@@ -112,22 +119,19 @@ describe('runMigrations', () => {
 
     const client = makeMockClient([]);
     // Make the migration SQL itself throw
-    client.query.mockImplementation(async (sql: string) => {
+    client.query.mockImplementation((sql: string) => {
       if (sql.trim() === 'INVALID SQL THAT WILL FAIL;') {
-        throw new Error('syntax error');
+        return Promise.reject(new Error('syntax error'));
       }
-      if (/SELECT filename FROM schema_migrations/.test(sql)) {
-        return { rows: [], rowCount: 0 };
-      }
-      return { rows: [], rowCount: 0 };
+      return Promise.resolve({ rows: [], rowCount: 0 });
     });
 
     const pool = makeMockPool(client);
 
     await expect(runMigrations(pool as never, tmpDir)).rejects.toThrow('syntax error');
 
-    const rollbackCalled = client.query.mock.calls.some(([sql]: [string]) =>
-      sql.trim().toUpperCase() === 'ROLLBACK',
+    const rollbackCalled = client.query.mock.calls.some(
+      ([sql]: [string]) => sql.trim().toUpperCase() === 'ROLLBACK',
     );
     expect(rollbackCalled).toBe(true);
   });
@@ -140,8 +144,8 @@ describe('runMigrations', () => {
 
     await runMigrations(pool as never, tmpDir);
 
-    const createCalled = client.executedSql.some((s) =>
-      s.includes('CREATE TABLE IF NOT EXISTS schema_migrations'),
+    const createCalled = client.query.mock.calls.some(([sql]: [string]) =>
+      sql.includes('CREATE TABLE IF NOT EXISTS schema_migrations'),
     );
     expect(createCalled).toBe(true);
   });
