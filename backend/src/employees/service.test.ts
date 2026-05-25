@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { getTestPool } from '../test/helpers/db';
 import { EmployeeService } from './service';
 
@@ -16,10 +16,12 @@ const base = {
 
 let service: EmployeeService;
 
-beforeEach(async () => {
-  const pool = getTestPool();
-  await pool.query('DELETE FROM employees');
-  service = new EmployeeService(pool);
+beforeEach(() => {
+  service = new EmployeeService(getTestPool());
+});
+
+afterEach(async () => {
+  await getTestPool().query('DELETE FROM employees');
 });
 
 // ── create ────────────────────────────────────────────────────────────────────
@@ -54,9 +56,9 @@ describe('getById', () => {
   });
 
   it('throws NotFoundError for an unknown id', async () => {
-    await expect(
-      service.getById('00000000-0000-0000-0000-000000000000'),
-    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    await expect(service.getById('00000000-0000-0000-0000-000000000000')).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
   });
 
   it('throws NotFoundError for a soft-deleted employee', async () => {
@@ -139,9 +141,9 @@ describe('delete', () => {
   });
 
   it('throws NotFoundError for an unknown id', async () => {
-    await expect(
-      service.delete('00000000-0000-0000-0000-000000000000'),
-    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    await expect(service.delete('00000000-0000-0000-0000-000000000000')).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
   });
 
   it('throws NotFoundError when the employee is already deleted', async () => {

@@ -5,6 +5,9 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     passWithNoTests: true,
+    // Run test files serially so committed rows from service tests (no
+    // BEGIN/ROLLBACK) don't race against repository tests using withTestDb.
+    fileParallelism: false,
     globalSetup: 'src/test/setup.ts',
     include: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
     coverage: {

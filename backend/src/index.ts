@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import { loadEnv } from './config/env';
 import { closePool } from './db/pool';
 import { createApp } from './app/app';

@@ -3,7 +3,7 @@ import { loadEnv } from '../../config/env';
 
 let _testPool: pg.Pool | null = null;
 
-function getTestPool(): pg.Pool {
+export function getTestPool(): pg.Pool {
   if (!_testPool) {
     const { testDatabaseUrl } = loadEnv();
     _testPool = new pg.Pool({ connectionString: testDatabaseUrl });
