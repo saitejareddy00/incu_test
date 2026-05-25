@@ -72,10 +72,9 @@ describe('getCountryStats', () => {
       });
       await createEmployee(client, { ...base, email: 'b@example.com', salaryCents: 120_000 });
       // Soft-delete the first employee directly
-      await client.query(
-        'UPDATE employees SET deleted_at = clock_timestamp() WHERE id = $1',
-        [emp.id],
-      );
+      await client.query('UPDATE employees SET deleted_at = clock_timestamp() WHERE id = $1', [
+        emp.id,
+      ]);
 
       const stats = await getCountryStats(client, 'US');
 
