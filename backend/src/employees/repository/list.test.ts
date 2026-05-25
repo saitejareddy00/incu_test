@@ -144,15 +144,18 @@ describe('listEmployees', () => {
     });
   });
 
-  it('excludes soft-deleted employees from results and total', async () => {
+  it('includes soft-deleted employees with isDeleted and deletedAt', async () => {
     await withTestDb(async (client) => {
       for (const e of employees) await createEmployee(client, e);
       const { data } = await listEmployees(client, {});
       await deleteEmployee(client, data[0].id);
 
       const result = await listEmployees(client, {});
-      expect(result.total).toBe(4);
-      expect(result.data.map((r) => r.id)).not.toContain(data[0].id);
+      expect(result.total).toBe(5);
+      const deleted = result.data.find((r) => r.id === data[0].id);
+      expect(deleted).toBeDefined();
+      expect(deleted!.isDeleted).toBe(true);
+      expect(deleted!.deletedAt).toBeInstanceOf(Date);
     });
   });
 });

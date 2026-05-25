@@ -82,15 +82,18 @@ describe('list', () => {
     expect(result.data).toHaveLength(2);
   });
 
-  it('excludes soft-deleted employees', async () => {
+  it('includes soft-deleted employees with isDeleted flag', async () => {
     const emp = await service.create(base);
     await service.create({ ...base, email: 'bob@example.com', firstName: 'Bob' });
     await service.delete(emp.id);
 
     const result = await service.list({});
 
-    expect(result.total).toBe(1);
-    expect(result.data[0].firstName).toBe('Bob');
+    expect(result.total).toBe(2);
+    const deleted = result.data.find((r) => r.id === emp.id);
+    expect(deleted?.isDeleted).toBe(true);
+    expect(deleted?.deletedAt).toBeInstanceOf(Date);
+    expect(result.data.find((r) => r.firstName === 'Bob')?.isDeleted).toBe(false);
   });
 });
 

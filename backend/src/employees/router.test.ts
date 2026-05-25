@@ -104,6 +104,21 @@ describe('GET /api/employees', () => {
     expect(res.status).toBe(200);
     expect(res.body.data).toBeInstanceOf(Array);
   });
+
+  it('includes soft-deleted employees with isDeleted and deletedAt', async () => {
+    const created = await request(app).post('/api/employees').send(validInput);
+    await request(app).delete(`/api/employees/${created.body.id as string}`);
+
+    const res = await request(app).get('/api/employees');
+
+    expect(res.status).toBe(200);
+    expect(res.body.total).toBe(1);
+    expect(res.body.data[0]).toMatchObject({
+      id: created.body.id,
+      isDeleted: true,
+    });
+    expect(res.body.data[0].deletedAt).toBeTruthy();
+  });
 });
 
 // ── GET /api/employees/:id ────────────────────────────────────────────────────

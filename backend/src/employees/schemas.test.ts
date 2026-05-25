@@ -118,6 +118,8 @@ describe('EmployeeRowSchema', () => {
     hireDate: new Date('2024-01-15'),
     createdAt: new Date(),
     updatedAt: new Date(),
+    isDeleted: false,
+    deletedAt: null,
   };
 
   it('accepts a valid DB row', () => {

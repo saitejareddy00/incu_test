@@ -18,7 +18,9 @@ export const EMPLOYEE_COLUMNS = `
   currency,
   hire_date     AS "hireDate",
   created_at    AS "createdAt",
-  updated_at    AS "updatedAt"
+  updated_at    AS "updatedAt",
+  (deleted_at IS NOT NULL) AS "isDeleted",
+  deleted_at    AS "deletedAt"
 `;
 
 /**
@@ -27,10 +29,13 @@ export const EMPLOYEE_COLUMNS = `
  *   - CHAR(n) columns come back padded → .trim()
  */
 export function toRow(raw: Record<string, unknown>): EmployeeRow {
+  const deletedAt = raw.deletedAt != null ? (raw.deletedAt as Date) : null;
   return {
     ...(raw as EmployeeRow),
     salaryCents: Number(raw.salaryCents),
     country: (raw.country as string).trim(),
     currency: (raw.currency as string).trim(),
+    isDeleted: Boolean(raw.isDeleted),
+    deletedAt,
   };
 }

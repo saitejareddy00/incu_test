@@ -52,6 +52,8 @@ export const EmployeeRowSchema = z.object({
   hireDate: z.date(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  isDeleted: z.boolean(),
+  deletedAt: z.date().nullable(),
 });
 
 export type EmployeeRow = z.infer<typeof EmployeeRowSchema>;
