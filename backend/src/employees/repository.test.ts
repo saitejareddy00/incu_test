@@ -78,11 +78,46 @@ describe('getEmployeeById', () => {
 // ── listEmployees ─────────────────────────────────────────────────────────────
 
 const employees = [
-  { ...baseInput, firstName: 'Alice', email: 'alice@example.com', country: 'US', jobTitle: 'Engineer', salaryCents: 80_000 },
-  { ...baseInput, firstName: 'Bob',   email: 'bob@example.com',   country: 'GB', jobTitle: 'Manager',  salaryCents: 120_000 },
-  { ...baseInput, firstName: 'Carol', email: 'carol@example.com', country: 'US', jobTitle: 'Engineer', salaryCents: 100_000 },
-  { ...baseInput, firstName: 'Dave',  email: 'dave@example.com',  country: 'DE', jobTitle: 'Designer', salaryCents: 90_000 },
-  { ...baseInput, firstName: 'Eve',   email: 'eve@example.com',   country: 'GB', jobTitle: 'Engineer', salaryCents: 110_000 },
+  {
+    ...baseInput,
+    firstName: 'Alice',
+    email: 'alice@example.com',
+    country: 'US',
+    jobTitle: 'Engineer',
+    salaryCents: 80_000,
+  },
+  {
+    ...baseInput,
+    firstName: 'Bob',
+    email: 'bob@example.com',
+    country: 'GB',
+    jobTitle: 'Manager',
+    salaryCents: 120_000,
+  },
+  {
+    ...baseInput,
+    firstName: 'Carol',
+    email: 'carol@example.com',
+    country: 'US',
+    jobTitle: 'Engineer',
+    salaryCents: 100_000,
+  },
+  {
+    ...baseInput,
+    firstName: 'Dave',
+    email: 'dave@example.com',
+    country: 'DE',
+    jobTitle: 'Designer',
+    salaryCents: 90_000,
+  },
+  {
+    ...baseInput,
+    firstName: 'Eve',
+    email: 'eve@example.com',
+    country: 'GB',
+    jobTitle: 'Engineer',
+    salaryCents: 110_000,
+  },
 ];
 
 describe('listEmployees', () => {
