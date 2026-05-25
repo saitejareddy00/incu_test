@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import InsightsPage from './InsightsPage';
 
 const theme = createTheme();
@@ -24,17 +24,18 @@ afterAll(() => server.close());
 
 function renderPage(initialPath = '/insights?country=US') {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(
+  const router = createMemoryRouter(
+    [{ path: '/insights', element: <InsightsPage /> }],
+    { initialEntries: [initialPath] },
+  );
+  render(
     <ThemeProvider theme={theme}>
       <QueryClientProvider client={qc}>
-        <MemoryRouter initialEntries={[initialPath]}>
-          <Routes>
-            <Route path="/insights" element={<InsightsPage />} />
-          </Routes>
-        </MemoryRouter>
+        <RouterProvider router={router} />
       </QueryClientProvider>
     </ThemeProvider>,
   );
+  return router;
 }
 
 describe('InsightsPage — country view', () => {
@@ -62,12 +63,12 @@ describe('InsightsPage — country view', () => {
   });
 
   it('updates the URL when a country is selected', async () => {
-    renderPage('/insights');
+    const router = renderPage('/insights');
     const countryInput = screen.getByRole('combobox', { name: /country/i });
     await userEvent.type(countryInput, 'United States');
     await userEvent.click(await screen.findByText(/united states/i));
 
     await waitFor(() => expect(screen.getByText('10')).toBeInTheDocument());
-    expect(window.location.search).toContain('country=US');
+    expect(router.state.location.search).toBe('?country=US');
   });
 });
