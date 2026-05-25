@@ -1,0 +1,85 @@
+import {
+  ApiResponseError,
+  CountryJobStats,
+  CountryStats,
+  CreateEmployeeInput,
+  Employee,
+  EmployeeListParams,
+  EmployeeListResponse,
+  OverviewMetrics,
+  UpdateEmployeeInput,
+} from './types';
+
+const BASE = '/api';
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    headers: { 'Content-Type': 'application/json', ...init?.headers },
+    ...init,
+  });
+
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({ error: { code: 'UNKNOWN', message: res.statusText } }))) as {
+      error: { code: string; message: string };
+    };
+    throw new ApiResponseError(res.status, body.error);
+  }
+
+  return res.json() as Promise<T>;
+}
+
+function toQuery(params: Record<string, unknown>): string {
+  const q = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== '') {
+      q.set(key, String(value));
+    }
+  }
+  const s = q.toString();
+  return s ? `?${s}` : '';
+}
+
+// ── Employees ─────────────────────────────────────────────────────────────────
+
+export const employeesClient = {
+  list(params: EmployeeListParams = {}): Promise<EmployeeListResponse> {
+    return request(`/employees${toQuery(params as Record<string, unknown>)}`);
+  },
+
+  getById(id: string): Promise<Employee> {
+    return request(`/employees/${encodeURIComponent(id)}`);
+  },
+
+  create(input: CreateEmployeeInput): Promise<Employee> {
+    return request('/employees', { method: 'POST', body: JSON.stringify(input) });
+  },
+
+  update(id: string, patch: UpdateEmployeeInput): Promise<Employee> {
+    return request(`/employees/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(patch),
+    });
+  },
+
+  delete(id: string): Promise<void> {
+    return request(`/employees/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  },
+};
+
+// ── Insights ──────────────────────────────────────────────────────────────────
+
+export const insightsClient = {
+  overview(): Promise<OverviewMetrics> {
+    return request('/insights/overview');
+  },
+
+  countryStats(country: string): Promise<CountryStats> {
+    return request(`/insights/country/${encodeURIComponent(country)}`);
+  },
+
+  countryJobStats(country: string, jobTitle: string): Promise<CountryJobStats> {
+    return request(
+      `/insights/country/${encodeURIComponent(country)}/job-title/${encodeURIComponent(jobTitle)}`,
+    );
+  },
+};
