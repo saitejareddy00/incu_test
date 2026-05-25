@@ -2,6 +2,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import SearchIcon from '@mui/icons-material/Search';
+import { Link } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -44,6 +45,16 @@ const BASE_COLUMNS: Column<Employee>[] = [
     key: 'fullName',
     label: 'Name',
     sortable: true,
+    render: (v, row) => (
+      <Link
+        to={`/employees/${row.id}`}
+        style={{ color: 'inherit', textDecoration: 'none', fontWeight: 500 }}
+        onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+        onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+      >
+        {v as string}
+      </Link>
+    ),
   },
   {
     key: 'email',

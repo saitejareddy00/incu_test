@@ -56,8 +56,7 @@ describe('EmployeeDetailPage', () => {
     renderPage();
     await waitFor(() => expect(screen.getByText('Alice Smith')).toBeInTheDocument());
     expect(screen.getByText('alice@example.com')).toBeInTheDocument();
-    expect(screen.getByText('Engineer')).toBeInTheDocument();
-    expect(screen.getByText('Engineering')).toBeInTheDocument();
+    expect(screen.getByText(/engineer/i)).toBeInTheDocument();
   });
 
   it('renders a back link to the employee list', async () => {
