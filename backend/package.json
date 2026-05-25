@@ -13,7 +13,7 @@
     "lint:fix": "eslint src --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
-    "migrate": "tsx src/db/migrate.ts",
+    "migrate": "tsx src/db/migrate-cli.ts",
     "seed": "tsx src/seed/seed.ts"
   },
   "dependencies": {

@@ -40,6 +40,7 @@ export async function runMigrations(
         await client.query(sql);
         await client.query('INSERT INTO schema_migrations (filename) VALUES ($1)', [file]);
         await client.query('COMMIT');
+        console.log(`  ✓ ${file}`);
       } catch (err) {
         await client.query('ROLLBACK');
         throw err;
@@ -49,3 +50,4 @@ export async function runMigrations(
     client.release();
   }
 }
+
