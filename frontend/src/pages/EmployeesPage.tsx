@@ -1,4 +1,5 @@
 import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import SearchIcon from '@mui/icons-material/Search';
 import {
@@ -19,6 +20,7 @@ import { useSearchParams } from 'react-router-dom';
 import { DataTable, type Column } from '../components/DataTable';
 import { useEmployees } from '../api/hooks';
 import type { Employee } from '../api/types';
+import { DeleteEmployeeDialog } from '../features/employees/DeleteEmployeeDialog';
 import { EmployeeFormDialog } from '../features/employees/EmployeeFormDialog';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -80,6 +82,7 @@ export default function EmployeesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [createOpen, setCreateOpen] = useState(false);
   const [editEmployee, setEditEmployee] = useState<Employee | undefined>();
+  const [deleteEmployee, setDeleteEmployee] = useState<Employee | undefined>();
 
   const page = Number(searchParams.get('page') ?? 1);
   const pageSize = Number(searchParams.get('pageSize') ?? 20);
@@ -99,6 +102,11 @@ export default function EmployeesPage() {
           <Tooltip title="Edit">
             <IconButton size="small" onClick={() => setEditEmployee(row)}>
               <EditIcon sx={{ fontSize: 15 }} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Delete">
+            <IconButton size="small" color="error" onClick={() => setDeleteEmployee(row)}>
+              <DeleteIcon sx={{ fontSize: 15 }} />
             </IconButton>
           </Tooltip>
         </Box>
@@ -166,6 +174,14 @@ export default function EmployeesPage() {
         employee={editEmployee}
         onClose={() => setEditEmployee(undefined)}
       />
+      {deleteEmployee && (
+        <DeleteEmployeeDialog
+          open
+          employeeId={deleteEmployee.id}
+          employeeName={deleteEmployee.fullName}
+          onClose={() => setDeleteEmployee(undefined)}
+        />
+      )}
 
       <Divider />
 
