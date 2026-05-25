@@ -8,18 +8,24 @@ export interface OverviewMetrics {
 }
 
 /**
- * Returns a company-wide salary dashboard payload in four queries.
- * All queries share the same active-employee filter (deleted_at IS NULL).
+ * Returns a company-wide salary dashboard payload by running four queries in
+ * true parallel. Each pool.query() acquires its own connection, executes, and
+ * releases immediately — no connection is held across all four queries.
+ *
+ * Accepts pg.Pool (not PoolClient) so that the four queries can actually run
+ * concurrently. A single PoolClient serialises queries on one TCP connection,
+ * making Promise.all misleading: parallelism is fake, and a failure leaves
+ * queued queries on a connection about to be released.
  */
-export async function getOverviewMetrics(client: pg.PoolClient): Promise<OverviewMetrics> {
+export async function getOverviewMetrics(pool: pg.Pool): Promise<OverviewMetrics> {
   const [totalResult, countriesResult, jobsResult, deptResult] = await Promise.all([
-    client.query<{ total: string }>(
+    pool.query<{ total: string }>(
       `SELECT COUNT(*)::bigint AS total
        FROM employees
        WHERE deleted_at IS NULL`,
     ),
 
-    client.query<{ country: string; avg: string; count: string }>(
+    pool.query<{ country: string; avg: string; count: string }>(
       `SELECT TRIM(country)                      AS country,
               ROUND(AVG(salary_cents))::bigint    AS avg,
               COUNT(*)::bigint                    AS count
@@ -30,7 +36,7 @@ export async function getOverviewMetrics(client: pg.PoolClient): Promise<Overvie
        LIMIT 5`,
     ),
 
-    client.query<{ job_title: string; avg: string; count: string }>(
+    pool.query<{ job_title: string; avg: string; count: string }>(
       `SELECT job_title,
               ROUND(AVG(salary_cents))::bigint    AS avg,
               COUNT(*)::bigint                    AS count
@@ -41,7 +47,7 @@ export async function getOverviewMetrics(client: pg.PoolClient): Promise<Overvie
        LIMIT 5`,
     ),
 
-    client.query<{ department: string; count: string }>(
+    pool.query<{ department: string; count: string }>(
       `SELECT department,
               COUNT(*)::bigint AS count
        FROM employees

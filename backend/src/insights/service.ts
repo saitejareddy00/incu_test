@@ -34,11 +34,8 @@ export class InsightsService {
   }
 
   async overview(): Promise<OverviewMetrics> {
-    const client = await this.pool.connect();
-    try {
-      return await getOverviewMetrics(client);
-    } finally {
-      client.release();
-    }
+    // pool.query() acquires + releases a connection per query internally;
+    // no manual client lifecycle needed here.
+    return getOverviewMetrics(this.pool);
   }
 }
