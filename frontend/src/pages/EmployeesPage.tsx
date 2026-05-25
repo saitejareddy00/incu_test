@@ -1,14 +1,17 @@
 import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
 import SearchIcon from '@mui/icons-material/Search';
 import {
   Box,
   Button,
   Divider,
+  IconButton,
   InputAdornment,
   OutlinedInput,
   Skeleton,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
@@ -32,9 +35,9 @@ function formatSalary(cents: number, currency: string): string {
   }
 }
 
-// ── Column definitions ────────────────────────────────────────────────────────
+// ── Column definitions (actions injected by the page component) ──────────────
 
-const COLUMNS: Column<Employee>[] = [
+const BASE_COLUMNS: Column<Employee>[] = [
   {
     key: 'fullName',
     label: 'Name',
@@ -76,6 +79,7 @@ const COLUMNS: Column<Employee>[] = [
 export default function EmployeesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [createOpen, setCreateOpen] = useState(false);
+  const [editEmployee, setEditEmployee] = useState<Employee | undefined>();
 
   const page = Number(searchParams.get('page') ?? 1);
   const pageSize = Number(searchParams.get('pageSize') ?? 20);
@@ -84,6 +88,23 @@ export default function EmployeesPage() {
   const q = searchParams.get('q') ?? '';
   const sortBy = searchParams.get('sortBy') ?? 'full_name';
   const sortDir = (searchParams.get('sortDir') ?? 'asc') as 'asc' | 'desc';
+
+  const COLUMNS: Column<Employee>[] = [
+    ...BASE_COLUMNS,
+    {
+      key: 'id',
+      label: '',
+      render: (_v, row) => (
+        <Box sx={{ display: 'flex', gap: 0.5 }}>
+          <Tooltip title="Edit">
+            <IconButton size="small" onClick={() => setEditEmployee(row)}>
+              <EditIcon sx={{ fontSize: 15 }} />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      ),
+    },
+  ];
 
   const { data, isPending } = useEmployees({
     page,
@@ -140,6 +161,11 @@ export default function EmployeesPage() {
       </Box>
 
       <EmployeeFormDialog open={createOpen} onClose={() => setCreateOpen(false)} />
+      <EmployeeFormDialog
+        open={Boolean(editEmployee)}
+        employee={editEmployee}
+        onClose={() => setEditEmployee(undefined)}
+      />
 
       <Divider />
 
