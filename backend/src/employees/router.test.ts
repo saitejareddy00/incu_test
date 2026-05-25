@@ -95,6 +95,15 @@ describe('GET /api/employees', () => {
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
   });
+
+  it('accepts camelCase sortBy from query params', async () => {
+    const res = await request(app)
+      .get('/api/employees')
+      .query({ sortBy: 'salaryCents', sortDir: 'asc' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data).toBeInstanceOf(Array);
+  });
 });
 
 // ── GET /api/employees/:id ────────────────────────────────────────────────────

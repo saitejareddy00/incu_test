@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import { z, ZodError } from 'zod';
 import { ValidationError } from '../app/errors';
-import { SORT_COLUMNS } from './repository/index';
+import { SORT_COLUMN_FROM_CAMEL, SORT_COLUMNS, toSortColumn } from './repository/index';
 import { CreateEmployeeInputSchema, UpdateEmployeeInputSchema } from './schemas';
 import { EmployeeService } from './service';
 
@@ -11,7 +11,21 @@ const ListQuerySchema = z.object({
   country: z.string().optional(),
   jobTitle: z.string().optional(),
   q: z.string().optional(),
-  sortBy: z.enum(SORT_COLUMNS).optional(),
+  sortBy: z
+    .string()
+    .optional()
+    .transform((val, ctx) => {
+      if (val === undefined) return undefined;
+      const col = toSortColumn(val);
+      if (!col) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Invalid enum value. Expected ${[...Object.keys(SORT_COLUMN_FROM_CAMEL), ...SORT_COLUMNS].join(' | ')}, received '${val}'`,
+        });
+        return z.NEVER;
+      }
+      return col;
+    }),
   sortDir: z.enum(['asc', 'desc']).optional(),
 });
 

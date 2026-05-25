@@ -10,6 +10,23 @@ export const SORT_COLUMNS = [
 
 export type SortColumn = (typeof SORT_COLUMNS)[number];
 
+/** API / UI sort keys (camelCase) → DB column names (snake_case). */
+export const SORT_COLUMN_FROM_CAMEL: Record<string, SortColumn> = {
+  fullName: 'full_name',
+  salaryCents: 'salary_cents',
+  hireDate: 'hire_date',
+  country: 'country',
+  department: 'department',
+};
+
+/** Accept camelCase or snake_case sort param; returns undefined if unrecognized. */
+export function toSortColumn(value: string): SortColumn | undefined {
+  if ((SORT_COLUMNS as readonly string[]).includes(value)) {
+    return value as SortColumn;
+  }
+  return SORT_COLUMN_FROM_CAMEL[value];
+}
+
 /** Parameters accepted by listEmployees. */
 export interface ListEmployeesParams {
   page?: number;
