@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { withTestDb } from '../../test/helpers/db';
-import { createEmployee, listEmployees } from './index';
+import { createEmployee, deleteEmployee, listEmployees } from './index';
 
 const baseInput = {
   firstName: 'Alice',
@@ -106,6 +106,18 @@ describe('listEmployees', () => {
       const result = await listEmployees(client, { sortBy: 'salary_cents', sortDir: 'desc' });
       const salaries = result.data.map((r) => r.salaryCents);
       expect(salaries).toEqual([...salaries].sort((a, b) => b - a));
+    });
+  });
+
+  it('excludes soft-deleted employees from results and total', async () => {
+    await withTestDb(async (client) => {
+      for (const e of employees) await createEmployee(client, e);
+      const { data } = await listEmployees(client, {});
+      await deleteEmployee(client, data[0].id);
+
+      const result = await listEmployees(client, {});
+      expect(result.total).toBe(4);
+      expect(result.data.map((r) => r.id)).not.toContain(data[0].id);
     });
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { withTestDb } from '../../test/helpers/db';
-import { createEmployee, updateEmployee } from './index';
+import { createEmployee, deleteEmployee, updateEmployee } from './index';
 
 const baseInput = {
   firstName: 'Alice',
@@ -48,6 +48,16 @@ describe('updateEmployee', () => {
       const result = await updateEmployee(client, '00000000-0000-0000-0000-000000000000', {
         jobTitle: 'Ghost',
       });
+      expect(result).toBeNull();
+    });
+  });
+
+  it('returns null for a soft-deleted employee', async () => {
+    await withTestDb(async (client) => {
+      const created = await createEmployee(client, baseInput);
+      await deleteEmployee(client, created.id);
+
+      const result = await updateEmployee(client, created.id, { jobTitle: 'Ghost' });
       expect(result).toBeNull();
     });
   });
