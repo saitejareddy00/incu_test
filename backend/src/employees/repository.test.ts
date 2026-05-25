@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { withTestDb } from '../test/helpers/db';
-import { createEmployee, getEmployeeById, listEmployees, updateEmployee } from './repository/index';
+import {
+  createEmployee,
+  deleteEmployee,
+  getEmployeeById,
+  listEmployees,
+  updateEmployee,
+} from './repository/index';
 
 const baseInput = {
   firstName: 'Alice',
@@ -257,6 +263,28 @@ describe('updateEmployee', () => {
       await expect(updateEmployee(client, second.id, { email: first.email })).rejects.toMatchObject(
         { code: 'CONFLICT' },
       );
+    });
+  });
+});
+
+// ── deleteEmployee ────────────────────────────────────────────────────────────
+
+describe('deleteEmployee', () => {
+  it('deletes an existing employee and returns true', async () => {
+    await withTestDb(async (client) => {
+      const created = await createEmployee(client, baseInput);
+
+      const deleted = await deleteEmployee(client, created.id);
+
+      expect(deleted).toBe(true);
+      expect(await getEmployeeById(client, created.id)).toBeNull();
+    });
+  });
+
+  it('returns false when the employee does not exist', async () => {
+    await withTestDb(async (client) => {
+      const result = await deleteEmployee(client, '00000000-0000-0000-0000-000000000000');
+      expect(result).toBe(false);
     });
   });
 });
