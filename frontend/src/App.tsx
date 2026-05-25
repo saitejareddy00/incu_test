@@ -1,16 +1,22 @@
-import { Typography, Container, Box } from '@mui/material';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import AppShell from './layout/AppShell';
+import DashboardPage from './pages/DashboardPage';
+import EmployeeDetailPage from './pages/EmployeeDetailPage';
+import EmployeesPage from './pages/EmployeesPage';
+import InsightsPage from './pages/InsightsPage';
 
 export default function App() {
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h4" component="h1">
-          Salary Management System
-        </Typography>
-        <Typography variant="body1" sx={{ mt: 1, color: 'text.secondary' }}>
-          Implementation coming in EPIC-5 onwards.
-        </Typography>
-      </Box>
-    </Container>
+    <BrowserRouter>
+      <Routes>
+        <Route element={<AppShell />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="employees" element={<EmployeesPage />} />
+          <Route path="employees/:id" element={<EmployeeDetailPage />} />
+          <Route path="insights" element={<InsightsPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
