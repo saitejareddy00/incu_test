@@ -34,10 +34,9 @@ describe('getOverviewMetrics', () => {
       await createEmployee(client, { ...base, email: 'a@example.com' });
       await createEmployee(client, { ...base, email: 'b@example.com' });
       const deleted = await createEmployee(client, { ...base, email: 'c@example.com' });
-      await client.query(
-        'UPDATE employees SET deleted_at = clock_timestamp() WHERE id = $1',
-        [deleted.id],
-      );
+      await client.query('UPDATE employees SET deleted_at = clock_timestamp() WHERE id = $1', [
+        deleted.id,
+      ]);
 
       const metrics = await getOverviewMetrics(client);
 

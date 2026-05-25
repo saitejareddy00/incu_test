@@ -60,10 +60,9 @@ describe('getCountryJobStats', () => {
         salaryCents: 60_000,
       });
       await createEmployee(client, { ...base, email: 'b@example.com', salaryCents: 140_000 });
-      await client.query(
-        'UPDATE employees SET deleted_at = clock_timestamp() WHERE id = $1',
-        [emp.id],
-      );
+      await client.query('UPDATE employees SET deleted_at = clock_timestamp() WHERE id = $1', [
+        emp.id,
+      ]);
 
       const stats = await getCountryJobStats(client, 'US', 'Engineer');
 
