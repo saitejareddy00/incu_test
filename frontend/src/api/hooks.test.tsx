@@ -27,6 +27,8 @@ const server = setupServer(
           hireDate: '2024-01-15',
           createdAt: '2024-01-15T00:00:00Z',
           updatedAt: '2024-01-15T00:00:00Z',
+          isDeleted: false,
+          deletedAt: null,
         },
       ],
       total: 1,

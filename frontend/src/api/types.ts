@@ -14,6 +14,8 @@ export interface Employee {
   hireDate: string;
   createdAt: string;
   updatedAt: string;
+  isDeleted: boolean;
+  deletedAt: string | null;
 }
 
 export interface CreateEmployeeInput {

@@ -9,6 +9,8 @@ import {
   TablePagination,
   TableRow,
   TableSortLabel,
+  type SxProps,
+  type Theme,
 } from '@mui/material';
 
 export interface Column<T> {
@@ -29,6 +31,7 @@ interface Props<T extends { id: string }> {
   sortBy?: string;
   sortDir?: 'asc' | 'desc';
   rowsPerPageOptions?: number[];
+  getRowSx?: (row: T) => SxProps<Theme> | undefined;
 }
 
 export function DataTable<T extends { id: string }>({
@@ -42,6 +45,7 @@ export function DataTable<T extends { id: string }>({
   sortBy,
   sortDir = 'asc',
   rowsPerPageOptions = [10, 20, 50],
+  getRowSx,
 }: Props<T>) {
   function handleSort(key: string) {
     if (!onSort) return;
@@ -75,7 +79,7 @@ export function DataTable<T extends { id: string }>({
 
           <TableBody>
             {rows.map((row) => (
-              <TableRow key={row.id} hover>
+              <TableRow key={row.id} hover sx={getRowSx?.(row)}>
                 {columns.map((col) => (
                   <TableCell key={col.key}>
                     {col.render ? col.render(row[col.key], row) : String(row[col.key] ?? '')}

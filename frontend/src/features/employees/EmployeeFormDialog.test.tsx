@@ -42,6 +42,7 @@ const existingEmployee: Employee = {
   email: 'alice@example.com', jobTitle: 'Engineer', country: 'US',
   department: 'Engineering', salaryCents: 120_000, currency: 'USD',
   hireDate: '2024-01-15', createdAt: '2024-01-15T00:00:00Z', updatedAt: '2024-01-15T00:00:00Z',
+  isDeleted: false, deletedAt: null,
 };
 
 const validInput = {

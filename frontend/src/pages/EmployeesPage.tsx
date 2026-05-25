@@ -18,8 +18,8 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { DataTable, type Column } from '../components/DataTable';
 import { useEmployees } from '../api/hooks';
 import type { Employee } from '../api/types';
@@ -149,41 +149,78 @@ const BASE_COLUMNS: Column<Employee>[] = [
   },
 ];
 
+// ── List state ────────────────────────────────────────────────────────────────
+
+interface ListState {
+  page: number;
+  pageSize: number;
+  country: string;
+  jobTitle: string;
+  q: string;
+  sortBy: string;
+  sortDir: 'asc' | 'desc';
+}
+
+const DEFAULT_LIST_STATE: ListState = {
+  page: 1,
+  pageSize: 10,
+  country: '',
+  jobTitle: '',
+  q: '',
+  sortBy: 'fullName',
+  sortDir: 'asc',
+};
+
+const FILTER_DEBOUNCE_MS = 300;
+
+const DELETED_ROW_SX = {
+  bgcolor: 'rgba(239, 68, 68, 0.06)',
+  '& .MuiTableCell-root': { color: 'text.secondary' },
+  '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.1) !important' },
+} as const;
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function EmployeesPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [listState, setListState] = useState<ListState>(DEFAULT_LIST_STATE);
   const [createOpen, setCreateOpen] = useState(false);
   const [editEmployee, setEditEmployee] = useState<Employee | undefined>();
   const [deleteEmployee, setDeleteEmployee] = useState<Employee | undefined>();
 
-  const page = Number(searchParams.get('page') ?? 1);
-  const pageSize = Number(searchParams.get('pageSize') ?? 10);
-  const country = searchParams.get('country') ?? '';
-  const jobTitle = searchParams.get('jobTitle') ?? '';
-  const q = searchParams.get('q') ?? '';
-  const sortBy = searchParams.get('sortBy') ?? 'fullName';
-  const sortDir = (searchParams.get('sortDir') ?? 'asc') as 'asc' | 'desc';
+  const { page, pageSize, country, jobTitle, q, sortBy, sortDir } = listState;
+
+  const debouncedQ = useDebouncedValue(q, FILTER_DEBOUNCE_MS);
+  const debouncedJobTitle = useDebouncedValue(jobTitle, FILTER_DEBOUNCE_MS);
+
+  const filtersMounted = useRef(false);
+  useEffect(() => {
+    if (!filtersMounted.current) {
+      filtersMounted.current = true;
+      return;
+    }
+    setListState((prev) => ({ ...prev, page: 1 }));
+  }, [debouncedQ, debouncedJobTitle]);
 
   const COLUMNS: Column<Employee>[] = [
     ...BASE_COLUMNS,
     {
       key: 'id',
       label: '',
-      render: (_v, row) => (
-        <Box sx={{ display: 'flex', gap: 0.5 }}>
-          <Tooltip title="Edit">
-            <IconButton size="small" onClick={() => setEditEmployee(row)}>
-              <EditIcon sx={{ fontSize: 15 }} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Delete">
-            <IconButton size="small" color="error" onClick={() => setDeleteEmployee(row)}>
-              <DeleteIcon sx={{ fontSize: 15 }} />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      ),
+      render: (_v, row) =>
+        row.isDeleted ? null : (
+          <Box sx={{ display: 'flex', gap: 0.5 }}>
+            <Tooltip title="Edit">
+              <IconButton size="small" onClick={() => setEditEmployee(row)}>
+                <EditIcon sx={{ fontSize: 15 }} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Delete">
+              <IconButton size="small" color="error" onClick={() => setDeleteEmployee(row)}>
+                <DeleteIcon sx={{ fontSize: 15 }} />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        ),
     },
   ];
 
@@ -191,34 +228,22 @@ export default function EmployeesPage() {
     page,
     pageSize,
     country: country || undefined,
-    jobTitle: jobTitle || undefined,
-    q: q || undefined,
+    jobTitle: debouncedJobTitle || undefined,
+    q: debouncedQ || undefined,
     sortBy,
     sortDir,
   });
 
-  function setParam(key: string, value: string) {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      if (value) {
-        next.set(key, value);
-      } else {
-        next.delete(key);
-      }
-      // Reset to page 1 whenever a filter changes
-      if (key !== 'page' && key !== 'pageSize') next.delete('page');
-      return next;
-    });
+  function updateList(partial: Partial<ListState>, resetPage = false) {
+    setListState((prev) => ({
+      ...prev,
+      ...partial,
+      ...(resetPage ? { page: 1 } : {}),
+    }));
   }
 
   function handleSort(key: string, dir: 'asc' | 'desc') {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.set('sortBy', key);
-      next.set('sortDir', dir);
-      next.delete('page');
-      return next;
-    });
+    updateList({ sortBy: key, sortDir: dir }, true);
   }
 
   return (
@@ -264,7 +289,7 @@ export default function EmployeesPage() {
           size="small"
           placeholder="Search name…"
           value={q}
-          onChange={(e) => setParam('q', e.target.value)}
+          onChange={(e) => updateList({ q: e.target.value })}
           startAdornment={
             <InputAdornment position="start">
               <SearchIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
@@ -278,7 +303,7 @@ export default function EmployeesPage() {
           value={country ? (findCountry(country) ?? null) : null}
           getOptionLabel={(o) => `${o.name} (${o.code})`}
           isOptionEqualToValue={(o, v) => o.code === v.code}
-          onChange={(_e, option) => setParam('country', option?.code ?? '')}
+          onChange={(_e, option) => updateList({ country: option?.code ?? '' }, true)}
           sx={{ minWidth: 220, '& input': { fontSize: 13 } }}
           renderOption={(props, option) => (
             <Box component="li" {...props} key={option.code}>
@@ -309,7 +334,7 @@ export default function EmployeesPage() {
           size="small"
           placeholder="Job title"
           value={jobTitle}
-          onChange={(e) => setParam('jobTitle', e.target.value)}
+          onChange={(e) => updateList({ jobTitle: e.target.value })}
           inputProps={{ 'aria-label': 'job title filter' }}
           sx={{ minWidth: 160, '& input': { fontSize: 13 } }}
         />
@@ -329,11 +354,12 @@ export default function EmployeesPage() {
           total={data?.total ?? 0}
           page={page}
           pageSize={pageSize}
-          onPageChange={(p) => setParam('page', String(p))}
+          onPageChange={(p) => updateList({ page: p })}
           onSort={handleSort}
           sortBy={sortBy}
           sortDir={sortDir}
           rowsPerPageOptions={[10, 20, 50]}
+          getRowSx={(row) => (row.isDeleted ? DELETED_ROW_SX : undefined)}
         />
       )}
     </Box>
