@@ -1,4 +1,5 @@
 import AddIcon from '@mui/icons-material/Add';
+import BarChartIcon from '@mui/icons-material/BarChart';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import SearchIcon from '@mui/icons-material/Search';
@@ -8,6 +9,7 @@ import {
   Avatar,
   Box,
   Button,
+  Chip,
   Divider,
   IconButton,
   InputAdornment,
@@ -27,6 +29,7 @@ import { DeleteEmployeeDialog } from '../features/employees/DeleteEmployeeDialog
 import { COUNTRIES, findCountry, type Country } from '../features/employees/countries';
 import { EmployeeFormDialog } from '../features/employees/EmployeeFormDialog';
 import { formatDate } from '../utils/formatDate';
+import { buildInsightsPath } from '../utils/insightsLink';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -339,6 +342,35 @@ export default function EmployeesPage() {
           sx={{ minWidth: 160, '& input': { fontSize: 13 } }}
         />
       </Stack>
+
+      {(country || debouncedJobTitle) && (
+        <Stack direction="row" spacing={1} flexWrap="wrap" alignItems="center">
+          {country && (
+            <Chip
+              component={Link}
+              to={buildInsightsPath({ country })}
+              clickable
+              icon={<BarChartIcon sx={{ fontSize: 14 }} />}
+              label={`View insights for ${country}`}
+              size="small"
+              variant="outlined"
+              sx={{ fontSize: 12 }}
+            />
+          )}
+          {debouncedJobTitle && (
+            <Chip
+              component={Link}
+              to={buildInsightsPath({ country: country || undefined, jobTitle: debouncedJobTitle })}
+              clickable
+              icon={<BarChartIcon sx={{ fontSize: 14 }} />}
+              label={`View insights for ${debouncedJobTitle}`}
+              size="small"
+              variant="outlined"
+              sx={{ fontSize: 12 }}
+            />
+          )}
+        </Stack>
+      )}
 
       {/* ── Table ──────────────────────────────────────────────────────── */}
       {isPending ? (
