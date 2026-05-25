@@ -18,6 +18,7 @@ import { useEmployee } from '../api/hooks';
 import { ApiResponseError } from '../api/types';
 import { DeleteEmployeeDialog } from '../features/employees/DeleteEmployeeDialog';
 import { EmployeeFormDialog } from '../features/employees/EmployeeFormDialog';
+import { formatDate } from '../utils/formatDate';
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -148,7 +149,7 @@ export default function EmployeeDetailPage() {
             />
           </Grid>
           <Grid item xs={6} sm={4}>
-            <Field label="Hire Date" value={employee.hireDate} />
+            <Field label="Hire Date" value={formatDate(employee.hireDate)} />
           </Grid>
           <Grid item xs={12} sm={4}>
             <Field label="Employee ID" value={<code style={{ fontSize: 11 }}>{employee.id}</code>} />

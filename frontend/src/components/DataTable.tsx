@@ -78,9 +78,7 @@ export function DataTable<T extends { id: string }>({
               <TableRow key={row.id} hover>
                 {columns.map((col) => (
                   <TableCell key={col.key}>
-                    {col.render
-                      ? col.render(row[col.key], row)
-                      : String(row[col.key] ?? '')}
+                    {col.render ? col.render(row[col.key], row) : String(row[col.key] ?? '')}
                   </TableCell>
                 ))}
               </TableRow>

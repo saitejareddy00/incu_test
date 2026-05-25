@@ -56,11 +56,20 @@ async function fillForm(overrides: Partial<typeof validInput> = {}) {
   await userEvent.type(screen.getByLabelText(/last name/i), values.lastName);
   await userEvent.type(screen.getByLabelText(/email/i), values.email);
   await userEvent.type(screen.getByLabelText(/job title/i), values.jobTitle);
-  await userEvent.type(screen.getByLabelText(/country/i), values.country);
   await userEvent.type(screen.getByLabelText(/department/i), values.department);
+
+  // Country is an Autocomplete — type into its combobox input, then click the option
+  const countryInput = screen.getByRole('combobox', { name: /country/i });
+  await userEvent.type(countryInput, 'United States');
+  const option = await screen.findByText(/united states/i);
+  await userEvent.click(option);
+
   await userEvent.type(screen.getByLabelText(/salary/i), String(values.salaryCents));
   await userEvent.type(screen.getByLabelText(/currency/i), values.currency);
-  await userEvent.type(screen.getByLabelText(/hire date/i), values.hireDate);
+  // Date input: clear then type YYYY-MM-DD
+  const dateInput = screen.getByLabelText(/joining date/i);
+  await userEvent.clear(dateInput);
+  await userEvent.type(dateInput, values.hireDate);
 }
 
 // ── Create mode ───────────────────────────────────────────────────────────────
@@ -73,6 +82,8 @@ describe('EmployeeFormDialog — create mode', () => {
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/job title/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/salary/i)).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: /country/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/joining date/i)).toBeInTheDocument();
   });
 
   it('shows validation error for empty required fields on submit', async () => {
@@ -121,6 +132,10 @@ describe('EmployeeFormDialog — edit mode', () => {
     wrap(<EmployeeFormDialog open onClose={vi.fn()} employee={existingEmployee} />);
     expect(screen.getByLabelText(/first name/i)).toHaveValue('Alice');
     expect(screen.getByLabelText(/email/i)).toHaveValue('alice@example.com');
+    // Country Autocomplete input should show the country label
+    expect(screen.getByRole('combobox', { name: /country/i })).toHaveValue('United States (US)');
+    // Date input should be pre-filled as YYYY-MM-DD
+    expect(screen.getByLabelText(/joining date/i)).toHaveValue('2024-01-15');
   });
 
   it('calls PATCH and closes on valid submit', async () => {

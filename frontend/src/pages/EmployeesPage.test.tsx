@@ -73,13 +73,13 @@ describe('EmployeesPage', () => {
     expect(screen.getByText(/salary/i)).toBeInTheDocument();
   });
 
-  it('filters by country when input changes', async () => {
+  it('filters by country when a country is selected', async () => {
     renderPage();
     await waitFor(() => screen.getByText('Alice Smith'));
 
-    const input = screen.getByPlaceholderText(/country/i);
-    await userEvent.clear(input);
-    await userEvent.type(input, 'US');
+    const countryInput = screen.getByRole('combobox', { name: /country filter/i });
+    await userEvent.type(countryInput, 'United States');
+    await userEvent.click(await screen.findByText(/united states/i));
 
     await waitFor(() => expect(screen.getByText('Alice Smith')).toBeInTheDocument());
     await waitFor(() => expect(screen.queryByText('Bob Jones')).not.toBeInTheDocument());
