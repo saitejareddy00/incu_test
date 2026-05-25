@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { withTestDb } from '../test/helpers/db';
-import { createEmployee, getEmployeeById, listEmployees } from './repository';
+import { createEmployee, getEmployeeById, listEmployees } from './repository/index';
 
 const baseInput = {
   firstName: 'Alice',
