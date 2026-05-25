@@ -20,6 +20,18 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-explicit-any': 'warn',
+    // Express route handlers return Promise<void> but are typed as void callbacks.
+    '@typescript-eslint/no-misused-promises': ['error', { checksVoidReturn: { arguments: false } }],
   },
+  overrides: [
+    {
+      // supertest's res.body is `any`; unsafe-access noise adds no value in tests.
+      files: ['**/*.test.ts'],
+      rules: {
+        '@typescript-eslint/no-unsafe-member-access': 'off',
+        '@typescript-eslint/no-unsafe-assignment': 'off',
+      },
+    },
+  ],
   ignorePatterns: ['dist/', 'node_modules/', 'vitest.config.ts'],
 };

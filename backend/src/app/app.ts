@@ -1,8 +1,11 @@
+import pg from 'pg';
 import express, { Request, Response, NextFunction } from 'express';
 import pinoHttp from 'pino-http';
 import { AppError, NotFoundError } from './errors';
+import { createEmployeeRouter } from '../employees/router';
+import { EmployeeService } from '../employees/service';
 
-export function createApp() {
+export function createApp(pool?: pg.Pool) {
   const app = express();
 
   app.use(express.json());
@@ -12,6 +15,11 @@ export function createApp() {
   app.get('/health', (_req: Request, res: Response) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
+
+  // ── Employee routes ───────────────────────────────────────────────────────
+  if (pool) {
+    app.use('/api/employees', createEmployeeRouter(new EmployeeService(pool)));
+  }
 
   // ── Test-only error trigger (stripped in production build) ────────────────
   if (process.env.NODE_ENV !== 'production') {
