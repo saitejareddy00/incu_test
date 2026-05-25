@@ -10,7 +10,8 @@ interface WhereClause {
 function buildWhereClause(
   filters: Pick<ListEmployeesParams, 'country' | 'jobTitle' | 'q'>,
 ): WhereClause {
-  const conditions: string[] = [];
+  // Always exclude soft-deleted rows; this is a system invariant, not a user filter.
+  const conditions: string[] = ['deleted_at IS NULL'];
   const params: unknown[] = [];
 
   if (filters.country) {

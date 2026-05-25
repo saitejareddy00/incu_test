@@ -26,8 +26,12 @@ export async function updateEmployee(
 
   const params: unknown[] = [];
   const setClauses = entries.map(([key, value]) => {
+    const column = COLUMN_MAP[key as keyof UpdateEmployeeInput];
+    if (!column) {
+      throw new Error(`updateEmployee: unknown patch key '${key}' has no column mapping`);
+    }
     params.push(value);
-    return `${COLUMN_MAP[key as keyof UpdateEmployeeInput]} = $${params.length}`;
+    return `${column} = $${params.length}`;
   });
 
   params.push(id);
@@ -37,7 +41,7 @@ export async function updateEmployee(
     const { rows } = await client.query(
       `UPDATE employees
        SET ${setClauses.join(', ')}
-       WHERE id = ${idParam}
+       WHERE id = ${idParam} AND deleted_at IS NULL
        RETURNING ${EMPLOYEE_COLUMNS}`,
       params,
     );
