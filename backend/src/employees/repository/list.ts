@@ -1,5 +1,5 @@
 import pg from 'pg';
-import { toRow } from './mappers';
+import { EMPLOYEE_COLUMNS, toRow } from './mappers';
 import { SORT_COLUMNS, type ListEmployeesParams, type ListEmployeesResult } from './types';
 
 interface WhereClause {
@@ -63,7 +63,7 @@ export async function listEmployees(
   const offsetIdx = dataParams.length;
 
   const { rows } = await client.query(
-    `SELECT * FROM employees ${whereSql}
+    `SELECT ${EMPLOYEE_COLUMNS} FROM employees ${whereSql}
      ORDER BY ${safeSort} ${safeDir}
      LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
     dataParams,

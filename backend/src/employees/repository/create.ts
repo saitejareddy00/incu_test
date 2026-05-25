@@ -1,7 +1,7 @@
 import pg from 'pg';
 import { ConflictError } from '../../app/errors';
 import type { CreateEmployeeInput, EmployeeRow } from '../schemas';
-import { toRow } from './mappers';
+import { EMPLOYEE_COLUMNS, toRow } from './mappers';
 
 export async function createEmployee(
   client: pg.PoolClient,
@@ -13,7 +13,7 @@ export async function createEmployee(
          (first_name, last_name, email, job_title, country, department,
           salary_cents, currency, hire_date)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-       RETURNING *`,
+       RETURNING ${EMPLOYEE_COLUMNS}`,
       [
         input.firstName,
         input.lastName,
