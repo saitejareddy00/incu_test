@@ -99,3 +99,59 @@ describe('EmployeesPage', () => {
     expect(screen.getByText(/of 2/i)).toBeInTheDocument();
   });
 });
+
+describe('EmployeesPage — insights drill-down', () => {
+  it('links to country insights when country filter is active', async () => {
+    renderPage();
+    await waitFor(() => screen.getByText('Alice Smith'));
+
+    const countryInput = screen.getByRole('combobox', { name: /country filter/i });
+    await userEvent.type(countryInput, 'United States');
+    await userEvent.click(await screen.findByText(/united states/i));
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: /view insights for us/i })).toHaveAttribute(
+        'href',
+        '/insights?country=US',
+      );
+    });
+  });
+
+  it('links to combined insights when country and job title filters are active', async () => {
+    renderPage();
+    await waitFor(() => screen.getByText('Alice Smith'));
+
+    const countryInput = screen.getByRole('combobox', { name: /country filter/i });
+    await userEvent.type(countryInput, 'United States');
+    await userEvent.click(await screen.findByText(/united states/i));
+
+    await userEvent.type(screen.getByLabelText(/job title filter/i), 'Engineer');
+
+    await waitFor(
+      () => {
+        expect(screen.getByRole('link', { name: /view insights for engineer/i })).toHaveAttribute(
+          'href',
+          '/insights?country=US&jobTitle=Engineer',
+        );
+      },
+      { timeout: 2000 },
+    );
+  });
+
+  it('links to job-title-only insights when only job title filter is active', async () => {
+    renderPage();
+    await waitFor(() => screen.getByText('Alice Smith'));
+
+    await userEvent.type(screen.getByLabelText(/job title filter/i), 'Manager');
+
+    await waitFor(
+      () => {
+        expect(screen.getByRole('link', { name: /view insights for manager/i })).toHaveAttribute(
+          'href',
+          '/insights?jobTitle=Manager',
+        );
+      },
+      { timeout: 2000 },
+    );
+  });
+});
