@@ -72,3 +72,49 @@ describe('InsightsPage — country view', () => {
     expect(router.state.location.search).toBe('?country=US');
   });
 });
+
+const ENGINEER_STATS = { avg: 110_000, count: 3 };
+const MANAGER_STATS = { avg: 150_000, count: 2 };
+
+describe('InsightsPage — country + job title view', () => {
+  beforeEach(() => {
+    server.use(
+      http.get('/api/insights/country/US/job-title/Engineer', () =>
+        HttpResponse.json(ENGINEER_STATS),
+      ),
+      http.get('/api/insights/country/US/job-title/Manager', () =>
+        HttpResponse.json(MANAGER_STATS),
+      ),
+    );
+  });
+
+  it('renders combined avg and headcount when country and jobTitle are in the URL', async () => {
+    renderPage('/insights?country=US&jobTitle=Engineer');
+    await waitFor(() => expect(screen.getByText('3')).toBeInTheDocument());
+    expect(screen.getByText(/average salary/i)).toBeInTheDocument();
+    expect(screen.queryByText(/median/i)).not.toBeInTheDocument();
+  });
+
+  it('updates combined stats when job title filter changes', async () => {
+    renderPage('/insights?country=US&jobTitle=Engineer');
+    await waitFor(() => expect(screen.getByText('3')).toBeInTheDocument());
+
+    const jobInput = screen.getByLabelText(/job title/i);
+    await userEvent.clear(jobInput);
+    await userEvent.type(jobInput, 'Manager');
+
+    await waitFor(() => expect(screen.getByText('2')).toBeInTheDocument());
+    expect(screen.queryByText('3')).not.toBeInTheDocument();
+  });
+
+  it('updates the URL when job title changes', async () => {
+    const router = renderPage('/insights?country=US');
+    await waitFor(() => expect(screen.getByText('10')).toBeInTheDocument());
+
+    const jobInput = screen.getByLabelText(/job title/i);
+    await userEvent.type(jobInput, 'Engineer');
+
+    await waitFor(() => expect(screen.getByText('3')).toBeInTheDocument());
+    expect(router.state.location.search).toContain('jobTitle=Engineer');
+  });
+});
