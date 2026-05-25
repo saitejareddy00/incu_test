@@ -1,6 +1,8 @@
+import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import {
   Box,
+  Button,
   Divider,
   InputAdornment,
   OutlinedInput,
@@ -9,10 +11,12 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { DataTable, type Column } from '../components/DataTable';
 import { useEmployees } from '../api/hooks';
 import type { Employee } from '../api/types';
+import { EmployeeFormDialog } from '../features/employees/EmployeeFormDialog';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -71,21 +75,22 @@ const COLUMNS: Column<Employee>[] = [
 
 export default function EmployeesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [createOpen, setCreateOpen] = useState(false);
 
-  const page     = Number(searchParams.get('page')     ?? 1);
+  const page = Number(searchParams.get('page') ?? 1);
   const pageSize = Number(searchParams.get('pageSize') ?? 20);
-  const country  = searchParams.get('country')  ?? '';
+  const country = searchParams.get('country') ?? '';
   const jobTitle = searchParams.get('jobTitle') ?? '';
-  const q        = searchParams.get('q')        ?? '';
-  const sortBy   = searchParams.get('sortBy')   ?? 'full_name';
-  const sortDir  = (searchParams.get('sortDir') ?? 'asc') as 'asc' | 'desc';
+  const q = searchParams.get('q') ?? '';
+  const sortBy = searchParams.get('sortBy') ?? 'full_name';
+  const sortDir = (searchParams.get('sortDir') ?? 'asc') as 'asc' | 'desc';
 
   const { data, isPending } = useEmployees({
     page,
     pageSize,
-    country:  country  || undefined,
+    country: country || undefined,
     jobTitle: jobTitle || undefined,
-    q:        q        || undefined,
+    q: q || undefined,
     sortBy,
     sortDir,
   });
@@ -124,7 +129,17 @@ export default function EmployeesPage() {
             {data ? `${data.total.toLocaleString()} total` : '—'}
           </Typography>
         </Box>
+        <Button
+          variant="contained"
+          size="small"
+          startIcon={<AddIcon />}
+          onClick={() => setCreateOpen(true)}
+        >
+          Add Employee
+        </Button>
       </Box>
+
+      <EmployeeFormDialog open={createOpen} onClose={() => setCreateOpen(false)} />
 
       <Divider />
 
