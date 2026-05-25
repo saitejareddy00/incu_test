@@ -9,9 +9,20 @@ export interface OverviewMetrics {
 
 // Shape of the JSON arrays PostgreSQL returns; numbers inside JSON are already
 // parsed as JS numbers by the pg driver's json type parser.
-interface TopCountryRow  { country: string;  avg: number; count: number }
-interface TopJobRow      { jobTitle: string; avg: number; count: number }
-interface DeptRow        { department: string; count: number }
+interface TopCountryRow {
+  country: string;
+  avg: number;
+  count: number;
+}
+interface TopJobRow {
+  jobTitle: string;
+  avg: number;
+  count: number;
+}
+interface DeptRow {
+  department: string;
+  count: number;
+}
 
 /**
  * Returns the company-wide dashboard payload in a single query and a single
@@ -26,10 +37,10 @@ interface DeptRow        { department: string; count: number }
  */
 export async function getOverviewMetrics(pool: pg.Pool): Promise<OverviewMetrics> {
   const { rows } = await pool.query<{
-    total_employees: string;            // bigint column → string
-    top_countries:  TopCountryRow[];    // json column  → parsed array
-    top_jobs:       TopJobRow[];        // json column  → parsed array
-    dept_headcount: DeptRow[];          // json column  → parsed array
+    total_employees: string; // bigint column → string
+    top_countries: TopCountryRow[]; // json column  → parsed array
+    top_jobs: TopJobRow[]; // json column  → parsed array
+    dept_headcount: DeptRow[]; // json column  → parsed array
   }>(`
     WITH active AS MATERIALIZED (
       SELECT TRIM(country) AS country,
@@ -82,20 +93,20 @@ export async function getOverviewMetrics(pool: pg.Pool): Promise<OverviewMetrics
 
   const row = rows[0];
   return {
-    totalEmployees:        Number(row.total_employees),
+    totalEmployees: Number(row.total_employees),
     topCountriesByAvgSalary: row.top_countries.map((r) => ({
       country: r.country,
-      avg:     r.avg,
-      count:   r.count,
+      avg: r.avg,
+      count: r.count,
     })),
     topJobTitlesByAvgSalary: row.top_jobs.map((r) => ({
       jobTitle: r.jobTitle,
-      avg:      r.avg,
-      count:    r.count,
+      avg: r.avg,
+      count: r.count,
     })),
     headcountByDepartment: row.dept_headcount.map((r) => ({
       department: r.department,
-      count:      r.count,
+      count: r.count,
     })),
   };
 }
