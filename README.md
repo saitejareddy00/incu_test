@@ -7,7 +7,7 @@ A full-stack HR salary management application for browsing, managing, and analys
 ---
 
 ## Demo 
-- [click here](https://drive.google.com/file/d/1ogMKhiYEImlZkfSSjl9pQQ_DvOP-RFLj/preview)
+- [click here](https://drive.google.com/file/d/1ogMKhiYEImlZkfSSjl9pQQ_DvOP-RFLj/view?usp=sharing)
 
 ## Prerequisites
 
