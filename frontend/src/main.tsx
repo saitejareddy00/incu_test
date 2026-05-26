@@ -1,11 +1,10 @@
+import { CssBaseline, ThemeProvider } from '@mui/material';
+import { QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { ThemeProvider, CssBaseline } from '@mui/material';
-import { QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import App from './App.tsx';
-import theme from './theme.ts';
 import { NotifyProvider } from './notifications/NotifyContext.tsx';
+import theme from './theme.ts';
 
 // queryClient is created outside render so it is stable across HMR
 let _notifyError: ((msg: string) => void) | null = null;
@@ -40,7 +39,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <App />
         </NotifyProvider>
       </ThemeProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   </React.StrictMode>,
 );
