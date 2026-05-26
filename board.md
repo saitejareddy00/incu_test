@@ -586,7 +586,7 @@
 ## EPIC-8 · Quality, Docs, Polish
 
 ### US-801 · Top-level README (setup, run, test, seed)
-**Status:** `[ ]` todo
+**Status:** `[x]` done
 
 **Goal:** Any reviewer can clone the repo and have the app running in under 5 minutes by following the README.
 
@@ -621,4 +621,4 @@
 
 ---
 
-*Last updated: US-000 initial authoring.*
+*Last updated: US-801 done — top-level README polished.*
