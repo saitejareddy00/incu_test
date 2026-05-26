@@ -10,7 +10,9 @@ import {
   UpdateEmployeeInput,
 } from './types';
 
-const BASE = '/api';
+/** In production, set VITE_API_URL to the backend origin (no trailing slash). */
+const API_ORIGIN = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? '';
+const BASE = API_ORIGIN ? `${API_ORIGIN}/api` : '/api';
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {

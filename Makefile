@@ -108,6 +108,14 @@ lint: ## Lint backend and frontend
 # Clean
 # ---------------------------------------------------------------------------
 
+.PHONY: docker-prod
+docker-prod: ## Build and run production stack (Postgres + API + UI on :8080)
+	docker compose -f docker-compose.prod.yml up --build
+
+.PHONY: docker-prod-down
+docker-prod-down: ## Stop production compose stack
+	docker compose -f docker-compose.prod.yml down
+
 .PHONY: clean
 clean: ## Remove build artefacts and installed dependencies
 	rm -rf $(BACKEND)/dist $(BACKEND)/node_modules

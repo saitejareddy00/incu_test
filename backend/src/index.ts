@@ -6,7 +6,7 @@ import { getPool, closePool } from './db/pool';
 import { createApp } from './app/app';
 
 const env = loadEnv();
-const app = createApp(getPool());
+const app = createApp(getPool(), { corsOrigins: env.corsOrigins });
 
 const server = app.listen(env.port, () => {
   console.log(`Server listening on port ${env.port}`);

@@ -7,8 +7,31 @@ import { EmployeeService } from '../employees/service';
 import { createInsightsRouter } from '../insights/router';
 import { InsightsService } from '../insights/service';
 
-export function createApp(pool?: pg.Pool) {
+export interface AppOptions {
+  /** Browser origins allowed to call the API (required when frontend is on another host). */
+  corsOrigins?: string[];
+}
+
+export function createApp(pool?: pg.Pool, options: AppOptions = {}) {
   const app = express();
+  const { corsOrigins = [] } = options;
+
+  if (corsOrigins.length > 0) {
+    app.use((req, res, next) => {
+      const origin = req.headers.origin;
+      if (origin && corsOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,POST,PATCH,DELETE,OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        res.setHeader('Vary', 'Origin');
+      }
+      if (req.method === 'OPTIONS') {
+        res.sendStatus(204);
+        return;
+      }
+      next();
+    });
+  }
 
   app.use(express.json());
   app.use(pinoHttp({ quietReqLogger: true }));

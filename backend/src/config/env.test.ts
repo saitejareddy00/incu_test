@@ -41,10 +41,12 @@ describe('loadEnv', () => {
     expect(() => loadEnv()).toThrow(/DATABASE_URL/);
   });
 
-  it('throws a descriptive error when TEST_DATABASE_URL is missing', () => {
+  it('falls back to DATABASE_URL when TEST_DATABASE_URL is missing', () => {
     process.env.DATABASE_URL = 'postgres://app:app@localhost:5432/app';
     delete process.env.TEST_DATABASE_URL;
 
-    expect(() => loadEnv()).toThrow(/TEST_DATABASE_URL/);
+    const cfg = loadEnv();
+
+    expect(cfg.testDatabaseUrl).toBe(cfg.databaseUrl);
   });
 });

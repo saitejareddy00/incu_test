@@ -21,6 +21,7 @@ A full-stack HR salary management application for browsing, managing, and analys
 - [Environment variables](#environment-variables)
 - [Architecture notes](#architecture-notes)
 - [Trade-offs and out of scope](#trade-offs-and-out-of-scope)
+- [Deployment](#deployment)
 - [Further documentation](#further-documentation)
 
 ---
@@ -211,6 +212,17 @@ To keep the assessment focused, the following are intentionally **not** in scope
 - **No background job queue.** Soft-deleted rows are never purged.
 - **Offset-based pagination.** Fine for HR-scale browsing; would migrate to cursor-based for very deep paging.
 - **Single-table data model.** No separate `countries`, `job_titles`, or `departments` tables yet — denormalised for query simplicity at this scale.
+
+---
+
+## Deployment
+
+Backend and frontend deploy **independently** (Dockerfiles, env vars, CORS). See **[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)** for:
+
+- Docker commands (`backend/Dockerfile`, `frontend/Dockerfile`)
+- Local full stack: `docker compose -f docker-compose.prod.yml up --build`
+- [Render](https://render.com) blueprint: [`render.yaml`](render.yaml)
+- Free hosting options (Render, Neon, Netlify, Vercel, Railway, etc.)
 
 ---
 
