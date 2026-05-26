@@ -610,7 +610,7 @@
 ---
 
 ### US-803 · Performance notes & known-limitations doc
-**Status:** `[ ]` todo
+**Status:** `[x]` done
 
 **Goal:** Document what the system does well and where it would need work at larger scale.
 
@@ -621,4 +621,4 @@
 
 ---
 
-*Last updated: US-802 done — root Makefile orchestration added.*
+*Last updated: US-803 done — EPIC-8 complete (performance.md added).*
