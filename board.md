@@ -598,7 +598,7 @@
 ---
 
 ### US-802 · npm scripts orchestration
-**Status:** `[ ]` todo
+**Status:** `[x]` done
 
 **Goal:** Common multi-package commands are runnable from the repo root.
 
@@ -621,4 +621,4 @@
 
 ---
 
-*Last updated: US-801 done — top-level README polished.*
+*Last updated: US-802 done — root Makefile orchestration added.*

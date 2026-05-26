@@ -59,6 +59,22 @@ Open <http://localhost:5173>. The HR Manager dashboard, employees list, and insi
 
 > The Vitest global setup migrates the `app_test` database automatically before integration tests — you do **not** need to run `npm run migrate` against the test DB manually.
 
+### Makefile shortcuts
+
+A root-level [`Makefile`](Makefile) wraps the most common workflows. Run `make` (or `make help`) for the full list. Most useful targets:
+
+```bash
+make install   # backend + frontend dependencies
+make db-up     # start PostgreSQL
+make migrate   # apply migrations to the dev DB
+make seed      # truncate + seed 10,000 employees
+make dev       # backend + frontend concurrently (Ctrl-C stops both)
+make test      # backend tests, then frontend tests
+make build     # production build for both
+```
+
+The `Makefile` is a thin convenience layer — every target is just one or two `npm` invocations. On Windows, use WSL or run the underlying `npm` scripts in `backend/` and `frontend/` directly.
+
 ---
 
 ## Project structure
