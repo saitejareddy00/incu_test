@@ -18,7 +18,6 @@ import {
   InputAdornment,
   OutlinedInput,
   Paper,
-  Skeleton,
   Stack,
   TextField,
   Tooltip,
@@ -26,7 +25,7 @@ import {
 } from '@mui/material';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
-import { DataTable, type Column } from '../components/DataTable';
+import { DataTable, TableLoadingSkeleton, type Column } from '../components/DataTable';
 import { KpiCard } from '../components/KpiCard';
 import { useEmployees } from '../api/hooks';
 import type { Employee } from '../api/types';
@@ -199,7 +198,7 @@ export default function EmployeesPage() {
     },
   ];
 
-  const { data, isPending } = useEmployees({
+  const { data, isPending, isFetching } = useEmployees({
     page,
     pageSize,
     country: country || undefined,
@@ -211,6 +210,8 @@ export default function EmployeesPage() {
 
   const activeFilterCount = [q, country, jobTitle].filter(Boolean).length;
   const hasFilters = activeFilterCount > 0;
+  const isInitialLoad = isPending && !data;
+  const isTableLoading = isFetching && !isInitialLoad;
 
   const pageRangeLabel = useMemo(() => {
     if (!data || data.total === 0) return 'No results';
@@ -304,7 +305,7 @@ export default function EmployeesPage() {
       )}
 
       {/* Summary KPIs */}
-      {!isPending && data && (
+      {!isInitialLoad && data && (
         <Grid container spacing={2}>
           <Grid item xs={12} sm={4}>
             <KpiCard
@@ -484,14 +485,8 @@ export default function EmployeesPage() {
 
       {/* Table */}
       <Box sx={{ flex: 1, minHeight: 0 }}>
-        {isPending ? (
-          <Paper variant="outlined" sx={{ p: 2 }}>
-            <Stack spacing={1}>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} variant="rectangular" height={48} sx={{ borderRadius: 1 }} />
-              ))}
-            </Stack>
-          </Paper>
+        {isInitialLoad ? (
+          <TableLoadingSkeleton pageSize={pageSize} columnCount={COLUMNS.length} />
         ) : (
           <DataTable
             columns={COLUMNS}
@@ -499,7 +494,9 @@ export default function EmployeesPage() {
             total={data?.total ?? 0}
             page={page}
             pageSize={pageSize}
+            loading={isTableLoading}
             onPageChange={(p) => updateList({ page: p })}
+            onPageSizeChange={(size) => updateList({ pageSize: size, page: 1 })}
             onSort={handleSort}
             sortBy={sortBy}
             sortDir={sortDir}

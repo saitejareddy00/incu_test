@@ -109,4 +109,39 @@ describe('DataTable', () => {
     await userEvent.click(screen.getByText('Name'));
     expect(onSort).toHaveBeenCalledWith('name', 'desc');
   });
+
+  it('calls onPageSizeChange when rows per page is changed', async () => {
+    const onPageSizeChange = vi.fn();
+    wrap(
+      <DataTable
+        columns={columns}
+        rows={rows}
+        total={100}
+        page={1}
+        pageSize={10}
+        onPageChange={vi.fn()}
+        onPageSizeChange={onPageSizeChange}
+        rowsPerPageOptions={[10, 20, 50]}
+      />,
+    );
+    await userEvent.click(screen.getByRole('combobox', { name: /rows per page/i }));
+    await userEvent.click(screen.getByRole('option', { name: '20' }));
+    expect(onPageSizeChange).toHaveBeenCalledWith(20);
+  });
+
+  it('shows a loading overlay when loading is true', () => {
+    wrap(
+      <DataTable
+        columns={columns}
+        rows={rows}
+        total={2}
+        page={1}
+        pageSize={20}
+        onPageChange={vi.fn()}
+        loading
+      />,
+    );
+    expect(screen.getByTestId('table-loading-overlay')).toBeInTheDocument();
+    expect(screen.getByLabelText(/loading table data/i)).toBeInTheDocument();
+  });
 });

@@ -117,6 +117,23 @@ describe('EmployeesPage', () => {
     await waitFor(() => screen.getByText('Alice Smith'));
     expect(screen.getAllByText(/of 2/i).length).toBeGreaterThan(0);
   });
+
+  it('shows a table skeleton on initial load', () => {
+    renderPage();
+    expect(screen.getByTestId('table-loading-skeleton')).toBeInTheDocument();
+  });
+
+  it('changes page size via rows-per-page control', async () => {
+    renderPage();
+    await waitFor(() => screen.getByText('Alice Smith'));
+
+    await userEvent.click(screen.getByRole('combobox', { name: /rows per page/i }));
+    await userEvent.click(screen.getByRole('option', { name: '20' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /rows per page/i })).toHaveTextContent('20');
+    });
+  });
 });
 
 describe('EmployeesPage — insights drill-down', () => {

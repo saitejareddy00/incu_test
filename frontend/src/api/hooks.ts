@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeesClient, insightsClient } from './client';
 import type { CreateEmployeeInput, EmployeeListParams, UpdateEmployeeInput } from './types';
 
@@ -25,6 +25,7 @@ export function useEmployees(params: EmployeeListParams) {
   return useQuery({
     queryKey: queryKeys.employees.list(params),
     queryFn: () => employeesClient.list(params),
+    placeholderData: keepPreviousData,
   });
 }
 
