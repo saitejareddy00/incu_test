@@ -1,6 +1,6 @@
 # Project Board — Salary Management System
 
-> Status key: `[ ]` todo · `[~]` in progress · `[x]` done
+> Status key: `[x]` todo · `[~]` in progress · `[x]` done
 
 ---
 
@@ -20,7 +20,7 @@
 ---
 
 ### US-001 · Repo structure + .gitignore + root README skeleton
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Establish the monorepo layout so every subsequent ticket has a clear home.
 
@@ -34,7 +34,7 @@
 ---
 
 ### US-002 · docker-compose.yml (Postgres + app\_test DB)
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** One command brings up the database dependencies needed for development and testing.
 
@@ -48,7 +48,7 @@
 ---
 
 ### US-003 · Backend scaffold (TS, Vitest, ESLint, Prettier, scripts)
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** `backend/` is a fully configured TypeScript project that can compile, lint, and run tests before any application code exists.
 
@@ -63,7 +63,7 @@
 ---
 
 ### US-004 · Frontend scaffold (Vite + MUI + TS + Vitest)
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** `frontend/` bootstraps a Vite + React 18 + TypeScript app with MUI v5 and a working test runner.
 
@@ -77,7 +77,7 @@
 ---
 
 ### US-005 · Curated first\_names.txt / last\_names.txt (~500 each)
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Deterministic seeding needs a curated name corpus.
 
@@ -92,7 +92,7 @@
 ## EPIC-1 · Backend Foundations
 
 ### US-101 · pg Pool + env config + graceful shutdown
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Application connects to Postgres via a managed pool and shuts down cleanly on SIGTERM/SIGINT.
 
@@ -105,7 +105,7 @@
 ---
 
 ### US-102 · SQL migration runner (.sql files + schema\_migrations)
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Plain `.sql` migration files are applied in order and tracked so they run exactly once.
 
@@ -119,7 +119,7 @@
 ---
 
 ### US-103 · employees table migration + indexes
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** The `employees` table exists in the database with the correct columns and indexes.
 
@@ -133,7 +133,7 @@
 ---
 
 ### US-104 · Express skeleton: health, error handler, request logger
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** A runnable Express server responds to health checks and handles errors uniformly.
 
@@ -147,7 +147,7 @@
 ---
 
 ### US-105 · Test infra: test DB bootstrap + per-test transaction helper
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Integration tests run against a real Postgres `app_test` DB with full isolation and no state bleed between tests.
 
@@ -163,7 +163,7 @@
 ## EPIC-2 · Employees CRUD (TDD)
 
 ### US-201 · Employee Zod schemas
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** All employee data shapes are validated by shared Zod schemas used by both the API layer and the repository.
 
@@ -176,7 +176,7 @@
 ---
 
 ### US-202 · Repository: createEmployee
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Persist a new employee record and return the full row.
 
@@ -190,7 +190,7 @@
 ---
 
 ### US-203 · Repository: getEmployeeById
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Fetch a single employee by UUID or return null.
 
@@ -202,7 +202,7 @@
 ---
 
 ### US-204 · Repository: listEmployees (pagination, filter, sort, search)
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Return a paginated, filterable, sortable employee list with total count.
 
@@ -218,7 +218,7 @@
 ---
 
 ### US-205 · Repository: updateEmployee
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Partially update an employee's fields and return the updated row.
 
@@ -232,7 +232,7 @@
 ---
 
 ### US-206 · Repository: deleteEmployee
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Remove an employee record by ID.
 
@@ -244,7 +244,7 @@
 ---
 
 ### US-207 · Service layer (unique email, business rules)
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Thin service layer that sits between controllers and the repository, enforcing business invariants.
 
@@ -257,7 +257,7 @@
 ---
 
 ### US-208 · Controller + routes + supertest integration tests
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** The five CRUD endpoints are wired into Express and tested end-to-end via supertest.
 
@@ -275,7 +275,7 @@
 ## EPIC-3 · Salary Insights (TDD)
 
 ### US-301 · Country aggregates (min/max/avg/median/count)
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Compute salary statistics for all employees in a given country.
 
@@ -288,7 +288,7 @@
 ---
 
 ### US-302 · Country + job title average
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Return average salary and headcount for a specific country + job-title combination.
 
@@ -300,7 +300,7 @@
 ---
 
 ### US-303 · Overview metrics
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Provide a high-level company-wide salary dashboard payload.
 
@@ -316,7 +316,7 @@
 ---
 
 ### US-304 · Insights controller + routes + integration tests
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Wire insight queries into Express and cover them with supertest tests.
 
@@ -328,7 +328,7 @@
 ---
 
 ### US-305 · Query plan review + index verification
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Confirm that insight queries use indexes and perform acceptably at 10k rows.
 
@@ -342,7 +342,7 @@
 ## EPIC-4 · Seeding Script
 
 ### US-401 · Names loader (streamed, deterministic)
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Load name lists from disk efficiently without reading entire files into memory.
 
@@ -354,7 +354,7 @@
 ---
 
 ### US-402 · Seeded PRNG + generators (country, job, salary, hire date)
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** All random data is reproducible given the same seed value.
 
@@ -367,7 +367,7 @@
 ---
 
 ### US-403 · Bulk insert via COPY (pg-copy-streams) + benchmark
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Insert 10 000 employee rows in well under 10 seconds using Postgres COPY.
 
@@ -380,7 +380,7 @@
 ---
 
 ### US-404 · CLI flags (--count, --seed, --truncate, --batch-size)
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** The seed script is configurable from the command line.
 
@@ -395,7 +395,7 @@
 ---
 
 ### US-405 · Seed README + recorded perf numbers
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Document how to use the seed script and capture performance results.
 
@@ -409,7 +409,7 @@
 ## EPIC-5 · Frontend Foundations
 
 ### US-501 · App shell, MUI theme, routing
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** A navigable React shell with brand colours and route placeholders for every view.
 
@@ -422,7 +422,7 @@
 ---
 
 ### US-502 · API client + TanStack Query setup
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** All server communication goes through a typed API client wrapped in TanStack Query hooks.
 
@@ -435,7 +435,7 @@
 ---
 
 ### US-503 · Global error/toast/loading patterns
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Consistent UX for loading states, errors, and success feedback across all views.
 
@@ -448,7 +448,7 @@
 ---
 
 ### US-504 · Reusable components (DataTable, FormDialog, ConfirmDialog)
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Shared UI primitives used by all employee and insight screens.
 
@@ -463,7 +463,7 @@
 ## EPIC-6 · Employee Management UI
 
 ### US-601 · Employees list (server pagination, sort, filter, search)
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** HR Manager can browse all employees with filtering and sorting.
 
@@ -478,7 +478,7 @@
 ---
 
 ### US-602 · Create Employee form
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** HR Manager can add a new employee via a dialog form.
 
@@ -492,7 +492,7 @@
 ---
 
 ### US-603 · Edit Employee form
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** HR Manager can update any employee's details.
 
@@ -505,7 +505,7 @@
 ---
 
 ### US-604 · Delete with confirmation
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** HR Manager can delete an employee with an explicit confirmation step.
 
@@ -518,7 +518,7 @@
 ---
 
 ### US-605 · Employee detail view
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** A dedicated page shows all fields for a single employee.
 
@@ -533,7 +533,7 @@
 ## EPIC-7 · Salary Insights UI
 
 ### US-701 · Dashboard / overview page
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Landing page gives HR Manager a company-wide salary snapshot.
 
@@ -546,7 +546,7 @@
 ---
 
 ### US-702 · Country insights view
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** HR Manager can drill into salary stats for a specific country.
 
@@ -559,7 +559,7 @@
 ---
 
 ### US-703 · Country + Job title insights view
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** HR Manager can narrow insights to a specific country + job title.
 
@@ -572,7 +572,7 @@
 ---
 
 ### US-704 · Drill-down from list filters into insights
-**Status:** `[ ]` todo
+**Status:** `[x]` todo
 
 **Goal:** Clicking a country or job-title filter on the employee list navigates to the relevant insights view.
 
