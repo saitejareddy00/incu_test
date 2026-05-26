@@ -11,11 +11,21 @@ import EmployeeDetailPage from './EmployeeDetailPage';
 const theme = createTheme();
 
 const EMPLOYEE = {
-  id: 'emp-1', firstName: 'Alice', lastName: 'Smith', fullName: 'Alice Smith',
-  email: 'alice@example.com', jobTitle: 'Engineer', country: 'US',
-  department: 'Engineering', salaryCents: 120_000, currency: 'USD',
-  hireDate: '2024-01-15', createdAt: '2024-01-15T00:00:00Z', updatedAt: '2024-01-15T00:00:00Z',
-  isDeleted: false, deletedAt: null,
+  id: 'emp-1',
+  firstName: 'Alice',
+  lastName: 'Smith',
+  fullName: 'Alice Smith',
+  email: 'alice@example.com',
+  jobTitle: 'Engineer',
+  country: 'US',
+  department: 'Engineering',
+  salaryCents: 120_000,
+  currency: 'USD',
+  hireDate: '2024-01-15',
+  createdAt: '2024-01-15T00:00:00Z',
+  updatedAt: '2024-01-15T00:00:00Z',
+  isDeleted: false,
+  deletedAt: null,
 };
 
 const server = setupServer(
@@ -75,8 +85,6 @@ describe('EmployeeDetailPage', () => {
 
   it('shows a 404 message for an unknown employee', async () => {
     renderPage('does-not-exist');
-    await waitFor(() =>
-      expect(screen.getByText(/not found/i)).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText(/not found/i)).toBeInTheDocument());
   });
 });

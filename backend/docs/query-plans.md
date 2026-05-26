@@ -7,29 +7,29 @@
 
 ## Indexes on `employees`
 
-| Index | Definition |
-|-------|------------|
-| `employees_active_idx` | `CREATE INDEX employees_active_idx ON public.employees USING btree (id) WHERE (deleted_at IS NULL)` |
-| `employees_email_key` | `CREATE UNIQUE INDEX employees_email_key ON public.employees USING btree (email)` |
-| `employees_pkey` | `CREATE UNIQUE INDEX employees_pkey ON public.employees USING btree (id)` |
-| `idx_employees_country` | `CREATE INDEX idx_employees_country ON public.employees USING btree (country)` |
+| Index                             | Definition                                                                                          |
+| --------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `employees_active_idx`            | `CREATE INDEX employees_active_idx ON public.employees USING btree (id) WHERE (deleted_at IS NULL)` |
+| `employees_email_key`             | `CREATE UNIQUE INDEX employees_email_key ON public.employees USING btree (email)`                   |
+| `employees_pkey`                  | `CREATE UNIQUE INDEX employees_pkey ON public.employees USING btree (id)`                           |
+| `idx_employees_country`           | `CREATE INDEX idx_employees_country ON public.employees USING btree (country)`                      |
 | `idx_employees_country_job_title` | `CREATE INDEX idx_employees_country_job_title ON public.employees USING btree (country, job_title)` |
-| `idx_employees_full_name_trgm` | `CREATE INDEX idx_employees_full_name_trgm ON public.employees USING gin (full_name gin_trgm_ops)` |
-| `idx_employees_job_title` | `CREATE INDEX idx_employees_job_title ON public.employees USING btree (job_title)` |
+| `idx_employees_full_name_trgm`    | `CREATE INDEX idx_employees_full_name_trgm ON public.employees USING gin (full_name gin_trgm_ops)`  |
+| `idx_employees_job_title`         | `CREATE INDEX idx_employees_job_title ON public.employees USING btree (job_title)`                  |
 
 ---
 
 ## Summary
 
-| Query | Node type | Index used | Execution time |
-|-------|-----------|------------|----------------|
-| listEmployees — country | Bitmap Heap Scan | `idx_employees_country_job_title` + `employees_active_idx` | 0.756 ms |
-| listEmployees — job\_title | Bitmap Heap Scan | `idx_employees_job_title` + `employees_active_idx` | 0.795 ms |
-| listEmployees — country + job\_title | Index Scan | `idx_employees_country_job_title` | **0.258 ms** |
-| listEmployees — full-name ILIKE | Bitmap Heap Scan | `employees_active_idx` (then row-filter) | 3.000 ms |
-| getCountryStats | Bitmap Heap Scan + Aggregate | `idx_employees_country_job_title` + `employees_active_idx` | 0.583 ms |
-| getCountryJobStats | Index Scan + Aggregate | `idx_employees_country_job_title` | **0.203 ms** |
-| getOverviewMetrics (CTE) | Seq Scan on materialized CTE | `employees_active_idx` (initial scan only) | 7.385 ms |
+| Query                               | Node type                    | Index used                                                 | Execution time |
+| ----------------------------------- | ---------------------------- | ---------------------------------------------------------- | -------------- |
+| listEmployees — country             | Bitmap Heap Scan             | `idx_employees_country_job_title` + `employees_active_idx` | 0.756 ms       |
+| listEmployees — job_title           | Bitmap Heap Scan             | `idx_employees_job_title` + `employees_active_idx`         | 0.795 ms       |
+| listEmployees — country + job_title | Index Scan                   | `idx_employees_country_job_title`                          | **0.258 ms**   |
+| listEmployees — full-name ILIKE     | Bitmap Heap Scan             | `employees_active_idx` (then row-filter)                   | 3.000 ms       |
+| getCountryStats                     | Bitmap Heap Scan + Aggregate | `idx_employees_country_job_title` + `employees_active_idx` | 0.583 ms       |
+| getCountryJobStats                  | Index Scan + Aggregate       | `idx_employees_country_job_title`                          | **0.203 ms**   |
+| getOverviewMetrics (CTE)            | Seq Scan on materialized CTE | `employees_active_idx` (initial scan only)                 | 7.385 ms       |
 
 **All queries complete well under the 100 ms target.**
 
@@ -39,7 +39,7 @@
   because that pattern matches ~11 % of active rows — above the cost crossover point where a bitmap
   heap scan of the already-narrow active set is cheaper. The GIN index activates for selective patterns
   (typically < 5 % of rows). For patterns with ≥ 3 fixed characters and low selectivity (e.g.
-  `%Jo%`), consider using `similarity()` or `%` operator (pg\_trgm) which forces index use.
+  `%Jo%`), consider using `similarity()` or `%` operator (pg_trgm) which forces index use.
 
 - **getOverviewMetrics CTE:** The plan confirms a **single** `Bitmap Heap Scan on employees` (the
   `MATERIALIZED` CTE) followed by four in-memory `CTE Scan` passes. No additional table touches.
@@ -54,7 +54,6 @@
 ## Query Plans
 
 ### listEmployees — country filter (idx_employees_country)
-
 
 ```
 Limit  (cost=13.21..13.22 rows=1 width=264) (actual time=0.725..0.727 rows=20 loops=1)
@@ -84,7 +83,6 @@ Execution Time: 0.756 ms
 
 ### listEmployees — job_title filter (idx_employees_job_title)
 
-
 ```
 Limit  (cost=13.21..13.22 rows=1 width=264) (actual time=0.770..0.771 rows=20 loops=1)
   Buffers: shared hit=277
@@ -110,7 +108,6 @@ Execution Time: 0.795 ms
 **Execution time (10k rows):** 0.795 ms
 
 ### listEmployees — country + job_title (idx_employees_country_job_title)
-
 
 ```
 Limit  (cost=8.31..8.32 rows=1 width=264) (actual time=0.248..0.250 rows=20 loops=1)
@@ -158,7 +155,6 @@ Execution Time: 3.000 ms
 
 ### getCountryStats — salary aggregates for one country
 
-
 ```
 Aggregate  (cost=13.22..13.24 rows=1 width=40) (actual time=0.549..0.549 rows=1 loops=1)
   Buffers: shared hit=284
@@ -182,7 +178,6 @@ Execution Time: 0.583 ms
 **Execution time (10k rows):** 0.583 ms
 
 ### getCountryJobStats — avg salary for country + job title
-
 
 ```
 Aggregate  (cost=8.31..8.33 rows=1 width=16) (actual time=0.193..0.194 rows=1 loops=1)

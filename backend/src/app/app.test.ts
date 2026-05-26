@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import request from 'supertest';
 import { createApp } from './app';
+import { getTestPool } from '../test/helpers/db';
 
 describe('Express app', () => {
   const app = createApp();
@@ -14,6 +15,14 @@ describe('Express app', () => {
       const body = res.body as { status: string; timestamp: string };
       expect(typeof body.timestamp).toBe('string');
       expect(new Date(body.timestamp).toISOString()).toBe(body.timestamp);
+    });
+
+    it('returns database ok when a pool is connected', async () => {
+      const appWithDb = createApp(getTestPool());
+      const res = await request(appWithDb).get('/health');
+
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({ status: 'ok', database: 'ok' });
     });
   });
 

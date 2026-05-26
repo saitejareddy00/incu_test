@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+          POSTGRES_DB: app
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd "pg_isready -U app -d app"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgres://app:app@localhost:5434/app
+      TEST_DATABASE_URL: postgres://app:app@localhost:5434/app_test
+      PORT: "3000"
+      LOG_LEVEL: error
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create app_test database
+        run: |
+          PGPASSWORD=app psql -h localhost -p 5434 -U app -d postgres -tc \
+            "SELECT 1 FROM pg_database WHERE datname = 'app_test'" | grep -q 1 || \
+          PGPASSWORD=app psql -h localhost -p 5434 -U app -d postgres -c \
+            "CREATE DATABASE app_test OWNER app"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci --registry https://registry.npmjs.org
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci --registry https://registry.npmjs.org
+
+      - name: Lint
+        run: |
+          cd backend && npm run lint
+          cd ../frontend && npm run lint
+
+      - name: Backend tests
+        working-directory: backend
+        run: npm test
+
+      - name: Frontend tests
+        working-directory: frontend
+        run: npm test
+
+      - name: Build
+        run: |
+          cd backend && npm run build
+          cd ../frontend && npm run build

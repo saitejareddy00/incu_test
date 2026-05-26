@@ -4,8 +4,26 @@ import { type Rng, pick, randInt } from './prng';
 
 /** ISO-3166-1 alpha-2 codes — broad geographic spread. */
 export const COUNTRIES = [
-  'US', 'GB', 'DE', 'FR', 'CA', 'AU', 'IN', 'BR', 'SG', 'JP',
-  'NL', 'SE', 'CH', 'ES', 'IT', 'PL', 'MX', 'ZA', 'KR', 'AE',
+  'US',
+  'GB',
+  'DE',
+  'FR',
+  'CA',
+  'AU',
+  'IN',
+  'BR',
+  'SG',
+  'JP',
+  'NL',
+  'SE',
+  'CH',
+  'ES',
+  'IT',
+  'PL',
+  'MX',
+  'ZA',
+  'KR',
+  'AE',
 ] as const;
 
 export const JOB_TITLES = [
@@ -45,10 +63,26 @@ export const DEPARTMENTS = [
 ] as const;
 
 export const CURRENCIES: Record<string, string> = {
-  US: 'USD', GB: 'GBP', DE: 'EUR', FR: 'EUR', CA: 'CAD',
-  AU: 'AUD', IN: 'INR', BR: 'BRL', SG: 'SGD', JP: 'JPY',
-  NL: 'EUR', SE: 'SEK', CH: 'CHF', ES: 'EUR', IT: 'EUR',
-  PL: 'PLN', MX: 'MXN', ZA: 'ZAR', KR: 'KRW', AE: 'AED',
+  US: 'USD',
+  GB: 'GBP',
+  DE: 'EUR',
+  FR: 'EUR',
+  CA: 'CAD',
+  AU: 'AUD',
+  IN: 'INR',
+  BR: 'BRL',
+  SG: 'SGD',
+  JP: 'JPY',
+  NL: 'EUR',
+  SE: 'SEK',
+  CH: 'CHF',
+  ES: 'EUR',
+  IT: 'EUR',
+  PL: 'PLN',
+  MX: 'MXN',
+  ZA: 'ZAR',
+  KR: 'KRW',
+  AE: 'AED',
 };
 
 // ── Generators ────────────────────────────────────────────────────────────────
@@ -70,7 +104,7 @@ export function generateDepartment(rng: Rng): string {
  * Stored as whole-cent integers (bigint in DB).
  */
 export function generateSalaryCents(rng: Rng): number {
-  const MIN_CENTS = 3_000_000;  // $30 000.00
+  const MIN_CENTS = 3_000_000; // $30 000.00
   const MAX_CENTS = 30_000_000; // $300 000.00
   return MIN_CENTS + randInt(rng, MAX_CENTS - MIN_CENTS + 1);
 }
@@ -124,7 +158,20 @@ export function generateRow(
   const hireDate = generateHireDate(rng);
   const currency = CURRENCIES[country] ?? 'USD';
   // Row index in email ensures global uniqueness regardless of name collisions.
-  const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}.${index}@example.com`.replace(/\s+/g, '.');
+  const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}.${index}@example.com`.replace(
+    /\s+/g,
+    '.',
+  );
 
-  return { firstName, lastName, email, jobTitle, country, department, salaryCents, currency, hireDate };
+  return {
+    firstName,
+    lastName,
+    email,
+    jobTitle,
+    country,
+    department,
+    salaryCents,
+    currency,
+    hireDate,
+  };
 }

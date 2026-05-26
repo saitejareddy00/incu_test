@@ -31,23 +31,13 @@ function wrap(ui: React.ReactNode) {
 
 describe('DeleteEmployeeDialog', () => {
   it('renders employee name in the confirmation message', () => {
-    wrap(
-      <DeleteEmployeeDialog
-        open employeeId="1" employeeName="Alice Smith"
-        onClose={vi.fn()}
-      />,
-    );
+    wrap(<DeleteEmployeeDialog open employeeId="1" employeeName="Alice Smith" onClose={vi.fn()} />);
     expect(screen.getByText(/alice smith/i)).toBeInTheDocument();
   });
 
   it('calls DELETE and closes dialog on confirm', async () => {
     const onClose = vi.fn();
-    wrap(
-      <DeleteEmployeeDialog
-        open employeeId="1" employeeName="Alice Smith"
-        onClose={onClose}
-      />,
-    );
+    wrap(<DeleteEmployeeDialog open employeeId="1" employeeName="Alice Smith" onClose={onClose} />);
     await userEvent.click(screen.getByRole('button', { name: /confirm|delete/i }));
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
@@ -61,12 +51,7 @@ describe('DeleteEmployeeDialog', () => {
       }),
     );
     const onClose = vi.fn();
-    wrap(
-      <DeleteEmployeeDialog
-        open employeeId="1" employeeName="Alice Smith"
-        onClose={onClose}
-      />,
-    );
+    wrap(<DeleteEmployeeDialog open employeeId="1" employeeName="Alice Smith" onClose={onClose} />);
     await userEvent.click(screen.getByRole('button', { name: /cancel/i }));
     expect(deleteCalled).toBe(false);
     expect(onClose).toHaveBeenCalled();
@@ -78,12 +63,7 @@ describe('DeleteEmployeeDialog', () => {
         HttpResponse.json({ error: { code: 'NOT_FOUND', message: 'Not found' } }, { status: 404 }),
       ),
     );
-    wrap(
-      <DeleteEmployeeDialog
-        open employeeId="1" employeeName="Alice Smith"
-        onClose={vi.fn()}
-      />,
-    );
+    wrap(<DeleteEmployeeDialog open employeeId="1" employeeName="Alice Smith" onClose={vi.fn()} />);
     await userEvent.click(screen.getByRole('button', { name: /confirm|delete/i }));
     await waitFor(() => expect(screen.getByText(/not found/i)).toBeInTheDocument());
   });

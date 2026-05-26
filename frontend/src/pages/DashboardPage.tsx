@@ -26,6 +26,7 @@ import {
 } from '../features/dashboard/overviewInsights';
 import { InteractiveBarChart, type BarChartItem } from '../features/dashboard/InteractiveBarChart';
 import { ApiResponseError } from '../api/types';
+import { KpiCard } from '../components/KpiCard';
 import { ErrorBanner } from '../notifications/ErrorBanner';
 import { formatSalaryCents } from '../utils/formatSalary';
 import { buildInsightsPath } from '../utils/insightsLink';
@@ -37,65 +38,6 @@ const VIEW_LABELS: Record<ChartView, string> = {
   jobs: 'Job titles',
   departments: 'Departments',
 };
-
-function KpiCard({
-  label,
-  value,
-  detail,
-  icon,
-  accent,
-}: {
-  label: string;
-  value: string;
-  detail: string;
-  icon: React.ReactNode;
-  accent?: string;
-}) {
-  return (
-    <Paper
-      variant="outlined"
-      sx={{
-        p: 2,
-        height: '100%',
-        borderColor: 'divider',
-        transition: 'box-shadow 0.2s, border-color 0.2s',
-        '&:hover': {
-          borderColor: accent ?? 'secondary.main',
-          boxShadow: '0 4px 12px rgba(99, 102, 241, 0.08)',
-        },
-      }}
-    >
-      <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
-        <Box
-          sx={{
-            width: 36,
-            height: 36,
-            borderRadius: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            bgcolor: accent ? `${accent}18` : 'rgba(99, 102, 241, 0.1)',
-            color: accent ?? 'secondary.main',
-            flexShrink: 0,
-          }}
-        >
-          {icon}
-        </Box>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-            {label}
-          </Typography>
-          <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.3 }} noWrap>
-            {value}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {detail}
-          </Typography>
-        </Box>
-      </Box>
-    </Paper>
-  );
-}
 
 function chartItems(data: OverviewMetrics, view: ChartView): BarChartItem[] {
   if (view === 'countries') {
@@ -159,11 +101,7 @@ export default function DashboardPage() {
   }
 
   if (!data) {
-    return (
-      <Box sx={{ p: 3 }}>
-        {errorMessage && <ErrorBanner message={errorMessage} />}
-      </Box>
-    );
+    return <Box sx={{ p: 3 }}>{errorMessage && <ErrorBanner message={errorMessage} />}</Box>;
   }
 
   const icons = [
@@ -185,7 +123,14 @@ export default function DashboardPage() {
           border: 'none',
         }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: 2,
+          }}
+        >
           <Box>
             <Typography variant="overline" sx={{ color: '#a5b4fc', letterSpacing: '0.12em' }}>
               Salary intelligence
@@ -275,8 +220,10 @@ export default function DashboardPage() {
               Compare {VIEW_LABELS[view].toLowerCase()}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              {view === 'countries' && 'Average salary by country — click a row to open country insights'}
-              {view === 'jobs' && 'Average salary by role — click a row to filter insights by job title'}
+              {view === 'countries' &&
+                'Average salary by country — click a row to open country insights'}
+              {view === 'jobs' &&
+                'Average salary by role — click a row to filter insights by job title'}
               {view === 'departments' && 'Headcount distribution across departments'}
             </Typography>
           </Box>
@@ -301,13 +248,7 @@ export default function DashboardPage() {
 
       {/* ── Quick links ────────────────────────────────────────────────── */}
       <Stack direction="row" spacing={1.5} flexWrap="wrap">
-        <Button
-          component={Link}
-          to="/employees"
-          size="small"
-          variant="outlined"
-          color="inherit"
-        >
+        <Button component={Link} to="/employees" size="small" variant="outlined" color="inherit">
           Browse employees
         </Button>
         {data.topCountriesByAvgSalary[0] && (

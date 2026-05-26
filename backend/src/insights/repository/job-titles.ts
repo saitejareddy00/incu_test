@@ -1,10 +1,7 @@
 import pg from 'pg';
 
 /** Distinct active employee job titles, optionally scoped to a country. */
-export async function listJobTitles(
-  client: pg.PoolClient,
-  country?: string,
-): Promise<string[]> {
+export async function listJobTitles(client: pg.PoolClient, country?: string): Promise<string[]> {
   const params: unknown[] = [];
   const conditions = ['deleted_at IS NULL'];
 

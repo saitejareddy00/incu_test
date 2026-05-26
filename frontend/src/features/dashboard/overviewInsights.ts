@@ -42,17 +42,13 @@ export function buildHighlights(data: OverviewMetrics): DashboardHighlight[] {
       id: 'top-role',
       label: 'Highest-paid role',
       value: topJob?.jobTitle ?? '—',
-      detail: topJob
-        ? `${formatSalaryCents(topJob.avg)} avg · ${topJob.count} people`
-        : 'No data',
+      detail: topJob ? `${formatSalaryCents(topJob.avg)} avg · ${topJob.count} people` : 'No data',
     },
     {
       id: 'top-dept',
       label: 'Largest department',
       value: topDept?.department ?? '—',
-      detail: topDept
-        ? `${topDept.count} people · ${deptCount} departments total`
-        : 'No data',
+      detail: topDept ? `${topDept.count} people · ${deptCount} departments total` : 'No data',
     },
   ];
 }

@@ -64,10 +64,7 @@ export function createInsightsRouter(service: InsightsService): Router {
     async (req: Request, res: Response, next: NextFunction) => {
       try {
         const { country } = CountryParamSchema.parse(req.params);
-        const stats = await service.countryJobStats(
-          country.toUpperCase(),
-          req.params.jobTitle,
-        );
+        const stats = await service.countryJobStats(country.toUpperCase(), req.params.jobTitle);
         res.json(stats);
       } catch (err) {
         next(err instanceof ZodError ? toValidationError(err) : err);

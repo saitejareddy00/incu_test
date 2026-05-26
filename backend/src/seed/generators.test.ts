@@ -74,7 +74,7 @@ describe('generateRow', () => {
     expect(row.firstName).toBeTruthy();
     expect(row.lastName).toBeTruthy();
     expect(row.email).toContain('@example.com');
-    expect(row.email).toContain('.0@');      // index suffix
+    expect(row.email).toContain('.0@'); // index suffix
     expect(row.salaryCents).toBeGreaterThan(0);
     expect(row.hireDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
@@ -98,7 +98,10 @@ describe('generateRow', () => {
   });
 
   it('same seed + index produces identical row (repeatability)', () => {
-    const make = () => { const rng = mulberry32(42); return generateRow(rng, 0, FIRST_NAMES, LAST_NAMES); };
+    const make = () => {
+      const rng = mulberry32(42);
+      return generateRow(rng, 0, FIRST_NAMES, LAST_NAMES);
+    };
     expect(make()).toEqual(make());
   });
 });

@@ -17,15 +17,7 @@ interface Props {
   emptyMessage?: string;
 }
 
-function BarRow({
-  item,
-  max,
-  rank,
-}: {
-  item: BarChartItem;
-  max: number;
-  rank: number;
-}) {
+function BarRow({ item, max, rank }: { item: BarChartItem; max: number; rank: number }) {
   const pct = max > 0 ? (item.magnitude / max) * 100 : 0;
   const color = BAR_COLORS[Math.min(rank, BAR_COLORS.length - 1)];
 

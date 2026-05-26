@@ -23,12 +23,12 @@ import { ApiResponseError, type Employee } from '../../api/types';
 import { formatSalaryCents } from '../../utils/formatSalary';
 import { avatarColor, initials } from './avatarUtils';
 import { COUNTRIES, findCountry, type Country } from './countries';
-import { employeeSchema, type EmployeeFormValues } from './employeeSchema';
-
-function toDateInputValue(value: string | undefined): string {
-  if (!value) return '';
-  return value.slice(0, 10);
-}
+import {
+  employeeFormSchema,
+  employeeToFormDefaults,
+  formToApiInput,
+  type EmployeeFormUiValues,
+} from './employeeFormSchema';
 
 function FormSection({
   title,
@@ -82,21 +82,6 @@ interface Props {
 export function EmployeeFormDialog({ open, onClose, employee }: Props) {
   const isEdit = Boolean(employee);
 
-  function buildDefaults(emp?: Employee): Partial<EmployeeFormValues> {
-    if (!emp) return { currency: 'USD' };
-    return {
-      firstName: emp.firstName,
-      lastName: emp.lastName,
-      email: emp.email,
-      jobTitle: emp.jobTitle,
-      country: emp.country,
-      department: emp.department,
-      salaryCents: emp.salaryCents,
-      currency: emp.currency,
-      hireDate: toDateInputValue(emp.hireDate),
-    };
-  }
-
   const {
     register,
     handleSubmit,
@@ -104,36 +89,38 @@ export function EmployeeFormDialog({ open, onClose, employee }: Props) {
     setError,
     control,
     formState: { errors, isSubmitting },
-  } = useForm<EmployeeFormValues>({
-    resolver: zodResolver(employeeSchema),
-    defaultValues: buildDefaults(employee),
+  } = useForm<EmployeeFormUiValues>({
+    resolver: zodResolver(employeeFormSchema),
+    defaultValues: employee ? employeeToFormDefaults(employee) : { currency: 'USD' },
   });
 
   const firstName = useWatch({ control, name: 'firstName' }) ?? '';
   const lastName = useWatch({ control, name: 'lastName' }) ?? '';
-  const salaryCents = useWatch({ control, name: 'salaryCents' });
+  const salaryDollars = useWatch({ control, name: 'salaryDollars' });
   const currency = useWatch({ control, name: 'currency' }) ?? 'USD';
 
   const previewName = [firstName, lastName].filter(Boolean).join(' ') || 'New employee';
   const salaryPreview =
-    typeof salaryCents === 'number' && salaryCents > 0
-      ? formatSalaryCents(salaryCents, currency || 'USD')
+    typeof salaryDollars === 'number' && salaryDollars > 0
+      ? formatSalaryCents(Math.round(salaryDollars * 100), currency || 'USD')
       : null;
 
   useEffect(() => {
-    if (open) reset(buildDefaults(employee));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, employee?.id]);
+    if (open) {
+      reset(employee ? employeeToFormDefaults(employee) : { currency: 'USD' });
+    }
+  }, [open, employee, reset]);
 
   const createMutation = useCreateEmployee();
   const updateMutation = useUpdateEmployee(employee?.id ?? '');
 
-  async function onSubmit(values: EmployeeFormValues) {
+  async function onSubmit(values: EmployeeFormUiValues) {
+    const apiInput = formToApiInput(values);
     try {
       if (isEdit) {
-        await updateMutation.mutateAsync(values);
+        await updateMutation.mutateAsync(apiInput);
       } else {
-        await createMutation.mutateAsync(values);
+        await createMutation.mutateAsync(apiInput);
       }
       onClose();
     } catch (err) {
@@ -341,22 +328,25 @@ export function EmployeeFormDialog({ open, onClose, employee }: Props) {
 
         <FormSection
           title="Compensation"
-          description="Salary stored in cents for precision"
+          description="Annual salary in major currency units (stored as cents in the database)"
           icon={<AttachMoneyOutlinedIcon fontSize="small" />}
         >
           <Grid container spacing={2}>
             <Grid item xs={12} sm={8}>
               <TextField
-                label="Salary (cents)"
+                label="Annual salary"
                 fullWidth
                 size="small"
                 type="number"
-                placeholder="12000000"
-                {...register('salaryCents', { valueAsNumber: true })}
-                error={Boolean(errors.salaryCents)}
+                inputProps={{ min: 0, step: 1000 }}
+                placeholder="120000"
+                {...register('salaryDollars', { valueAsNumber: true })}
+                error={Boolean(errors.salaryDollars)}
                 helperText={
-                  errors.salaryCents?.message ??
-                  (salaryPreview ? `Displays as ${salaryPreview}` : 'Enter amount in cents')
+                  errors.salaryDollars?.message ??
+                  (salaryPreview
+                    ? `Stored as ${salaryPreview}`
+                    : 'Enter amount before tax/deductions')
                 }
               />
             </Grid>

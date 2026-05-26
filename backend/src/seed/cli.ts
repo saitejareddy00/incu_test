@@ -16,6 +16,7 @@ export const DEFAULTS = {
   seed: 42,
   truncate: false,
   batchSize: 1_000,
+  analyze: true,
 } as const;
 
 const cliSchema = z.object({
@@ -30,6 +31,7 @@ const cliSchema = z.object({
     .nonnegative('--seed must be ≥ 0')
     .default(DEFAULTS.seed),
   truncate: z.boolean().default(DEFAULTS.truncate),
+  analyze: z.boolean().default(DEFAULTS.analyze),
   batchSize: z.coerce
     .number()
     .int('--batch-size must be an integer')
@@ -47,6 +49,7 @@ Options:
   --seed <n>        PRNG seed for reproducibility  (default: ${DEFAULTS.seed})
   --truncate        Truncate the employees table before seeding
   --batch-size <n>  Rows per COPY call  (default: ${DEFAULTS.batchSize})
+  --no-analyze      Skip ANALYZE employees after insert (faster, weaker planner stats)
   --help            Print this message and exit
 
 Examples:
@@ -72,6 +75,11 @@ export function parseArgs(argv: string[]): CliOptions {
 
     if (arg === '--truncate') {
       raw.truncate = true;
+      continue;
+    }
+
+    if (arg === '--no-analyze') {
+      raw.analyze = false;
       continue;
     }
 

@@ -29,9 +29,9 @@ async function run(): Promise<void> {
     process.exit(1);
   }
 
-  const { count, seed, truncate, batchSize } = opts;
+  const { count, seed, truncate, batchSize, analyze } = opts;
   console.log(
-    `Seed config: count=${count} seed=${seed} truncate=${truncate} batchSize=${batchSize}`,
+    `Seed config: count=${count} seed=${seed} truncate=${truncate} batchSize=${batchSize} analyze=${analyze}`,
   );
 
   // ── 2. Load names (streamed — files are read once, arrays reused per row) ──
@@ -64,6 +64,14 @@ async function run(): Promise<void> {
       firstNames,
       lastNames,
     });
+
+    if (analyze) {
+      const analyzeStart = performance.now();
+      await client.query('ANALYZE employees');
+      console.log(
+        `ANALYZE employees completed in ${((performance.now() - analyzeStart) / 1000).toFixed(2)}s`,
+      );
+    }
 
     const elapsedMs = performance.now() - start;
     const elapsedSec = elapsedMs / 1_000;

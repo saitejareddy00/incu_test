@@ -253,7 +253,14 @@ export default function EmployeesPage() {
           border: 'none',
         }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: 2,
+          }}
+        >
           <Box>
             <Typography variant="overline" sx={{ color: '#a5b4fc', letterSpacing: '0.12em' }}>
               Team directory
@@ -458,7 +465,10 @@ export default function EmployeesPage() {
             {debouncedJobTitle && (
               <Chip
                 component={Link}
-                to={buildInsightsPath({ country: country || undefined, jobTitle: debouncedJobTitle })}
+                to={buildInsightsPath({
+                  country: country || undefined,
+                  jobTitle: debouncedJobTitle,
+                })}
                 clickable
                 icon={<BarChartIcon sx={{ fontSize: 14 }} />}
                 label={`View insights for ${debouncedJobTitle}`}

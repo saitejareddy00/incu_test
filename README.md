@@ -7,6 +7,7 @@ A full-stack HR salary management application for browsing, managing, and analys
 ---
 
 ## Demo
+
 [watch the demo here](https://drive.google.com/file/d/1ogMKhiYEImlZkfSSjl9pQQ_DvOP-RFLj/view?usp=sharing)
 
 ## Table of contents
@@ -115,17 +116,17 @@ The `Makefile` is a thin convenience layer — every target is just one or two `
 
 All endpoints are mounted under `/api`. JSON in, JSON out. Validation errors return `400` with a structured body.
 
-| Method | Path                                                       | Description                                            |
-|--------|------------------------------------------------------------|--------------------------------------------------------|
-| GET    | `/api/employees`                                           | Paginated list. Query: `page`, `pageSize`, `country`, `jobTitle`, `q`, `sort` |
-| POST   | `/api/employees`                                           | Create employee                                        |
-| GET    | `/api/employees/:id`                                       | Fetch one employee                                     |
-| PATCH  | `/api/employees/:id`                                       | Partial update                                         |
-| DELETE | `/api/employees/:id`                                       | Soft-delete (sets `deleted_at`)                        |
-| GET    | `/api/insights/country/:country`                           | `{ min, max, avg, median, count }` in salary cents     |
-| GET    | `/api/insights/country/:country/job-title/:jobTitle`       | `{ avg, count }` for a country + role combination      |
-| GET    | `/api/insights/overview`                                   | Top countries / job titles by avg, headcount by dept   |
-| GET    | `/health`                                                  | Liveness probe                                         |
+| Method | Path                                                 | Description                                                                   |
+| ------ | ---------------------------------------------------- | ----------------------------------------------------------------------------- |
+| GET    | `/api/employees`                                     | Paginated list. Query: `page`, `pageSize`, `country`, `jobTitle`, `q`, `sort` |
+| POST   | `/api/employees`                                     | Create employee                                                               |
+| GET    | `/api/employees/:id`                                 | Fetch one employee                                                            |
+| PATCH  | `/api/employees/:id`                                 | Partial update                                                                |
+| DELETE | `/api/employees/:id`                                 | Soft-delete (sets `deleted_at`)                                               |
+| GET    | `/api/insights/country/:country`                     | `{ min, max, avg, median, count }` in salary cents                            |
+| GET    | `/api/insights/country/:country/job-title/:jobTitle` | `{ avg, count }` for a country + role combination                             |
+| GET    | `/api/insights/overview`                             | Top countries / job titles by avg, headcount by dept                          |
+| GET    | `/health`                                            | Liveness probe (`database: ok` when Postgres is reachable)                    |
 
 ---
 
@@ -135,6 +136,8 @@ All endpoints are mounted under `/api`. JSON in, JSON out. Validation errors ret
 (cd backend  && npm test)   # Vitest: unit + integration (real Postgres app_test DB)
 (cd frontend && npm test)   # Vitest + React Testing Library + MSW
 ```
+
+CI runs the same checks on push/PR via [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (Postgres service, lint, test, build).
 
 **Testing strategy:**
 
@@ -162,14 +165,29 @@ Uses PostgreSQL `COPY ... FROM STDIN` via [`pg-copy-streams`](https://github.com
 
 Copy [`backend/.env.example`](backend/.env.example) to `backend/.env`. Defaults match `docker-compose.yml`.
 
-| Variable              | Default                                              | Description              |
-|-----------------------|------------------------------------------------------|--------------------------|
-| `DATABASE_URL`        | `postgres://app:app@localhost:5434/app`              | Main application DB      |
-| `TEST_DATABASE_URL`   | `postgres://app:app@localhost:5434/app_test`         | Integration-test DB      |
-| `PORT`                | `3000`                                               | HTTP server port         |
-| `LOG_LEVEL`           | `info`                                               | Pino log level           |
+| Variable            | Default                                      | Description         |
+| ------------------- | -------------------------------------------- | ------------------- |
+| `DATABASE_URL`      | `postgres://app:app@localhost:5434/app`      | Main application DB |
+| `TEST_DATABASE_URL` | `postgres://app:app@localhost:5434/app_test` | Integration-test DB |
+| `PORT`              | `3000`                                       | HTTP server port    |
+| `LOG_LEVEL`         | `info`                                       | Pino log level      |
 
 > Postgres is exposed on host port **5434** (not 5432) to avoid clashes with any pre-existing local Postgres instance. The container itself still listens on 5432 internally.
+
+---
+
+## Soft-delete behavior
+
+Employees are **soft-deleted** (`deleted_at` is set; the row remains in the database).
+
+| Surface                                       | Includes deactivated employees?                                                                 |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `GET /api/employees` (list)                   | **Yes** — returned with `isDeleted: true` and `deletedAt`; shown in a muted row style in the UI |
+| `GET /api/employees/:id`                      | **No** — returns 404                                                                            |
+| `PATCH` / `DELETE` on a deactivated row       | **No** — returns 404                                                                            |
+| Salary **insights** (country, role, overview) | **No** — aggregates only active employees (`deleted_at IS NULL`)                                |
+
+This matches the HR workflow: the directory shows historical records, while compensation analytics reflect the active workforce only.
 
 ---
 

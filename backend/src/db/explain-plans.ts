@@ -20,11 +20,13 @@ if (!url) {
 
 const pool = new pg.Pool({ connectionString: url });
 
-async function explain(client: pg.PoolClient, label: string, sql: string, params: unknown[] = []): Promise<string> {
-  const { rows } = await client.query(
-    `EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT) ${sql}`,
-    params,
-  );
+async function explain(
+  client: pg.PoolClient,
+  label: string,
+  sql: string,
+  params: unknown[] = [],
+): Promise<string> {
+  const { rows } = await client.query(`EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT) ${sql}`, params);
   return rows.map((r: Record<string, string>) => r['QUERY PLAN']).join('\n');
 }
 
@@ -59,7 +61,12 @@ async function seed10k(client: pg.PoolClient): Promise<void> {
   console.log('  seeded');
 }
 
-interface QueryPlan { label: string; sql: string; params?: unknown[]; note?: string }
+interface QueryPlan {
+  label: string;
+  sql: string;
+  params?: unknown[];
+  note?: string;
+}
 
 const QUERIES: QueryPlan[] = [
   {

@@ -14,8 +14,24 @@ export function createApp(pool?: pg.Pool) {
   app.use(pinoHttp({ quietReqLogger: true }));
 
   // ── Health ────────────────────────────────────────────────────────────────
-  app.get('/health', (_req: Request, res: Response) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  app.get('/health', async (_req: Request, res: Response) => {
+    const timestamp = new Date().toISOString();
+
+    if (!pool) {
+      res.json({ status: 'ok', timestamp });
+      return;
+    }
+
+    try {
+      await pool.query('SELECT 1');
+      res.json({ status: 'ok', timestamp, database: 'ok' });
+    } catch {
+      res.status(503).json({
+        status: 'degraded',
+        timestamp,
+        database: 'unavailable',
+      });
+    }
   });
 
   // ── Employee routes ───────────────────────────────────────────────────────

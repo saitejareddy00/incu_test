@@ -8,15 +8,15 @@ A snapshot of how the Salary Management backend performs at the target scale of 
 
 ## Summary
 
-| Metric                                            | Measurement     | Notes                                      |
-|---------------------------------------------------|-----------------|--------------------------------------------|
-| Seed throughput                                   | ~20 000 rows/s  | 10k rows in ≈ 0.5 s via `COPY FROM STDIN`  |
-| `listEmployees` — country + job title filter      | 0.26 ms         | Composite index, index-only path           |
-| `listEmployees` — single-column filter            | 0.76–0.80 ms    | Bitmap heap scan                           |
-| `listEmployees` — full-name `ILIKE` search        | 3.0 ms          | Trigram GIN index on `full_name`           |
-| `getCountryStats` (min/max/avg/median/count)      | 0.58 ms         | Aggregates over filtered set               |
-| `getCountryJobStats` (avg, count)                 | 0.20 ms         | Composite index, index scan                |
-| `getOverviewMetrics` (single CTE, full dashboard) | 7.4 ms          | One `Bitmap Heap Scan`, four CTE passes    |
+| Metric                                            | Measurement    | Notes                                     |
+| ------------------------------------------------- | -------------- | ----------------------------------------- |
+| Seed throughput                                   | ~20 000 rows/s | 10k rows in ≈ 0.5 s via `COPY FROM STDIN` |
+| `listEmployees` — country + job title filter      | 0.26 ms        | Composite index, index-only path          |
+| `listEmployees` — single-column filter            | 0.76–0.80 ms   | Bitmap heap scan                          |
+| `listEmployees` — full-name `ILIKE` search        | 3.0 ms         | Trigram GIN index on `full_name`          |
+| `getCountryStats` (min/max/avg/median/count)      | 0.58 ms        | Aggregates over filtered set              |
+| `getCountryJobStats` (avg, count)                 | 0.20 ms        | Composite index, index scan               |
+| `getOverviewMetrics` (single CTE, full dashboard) | 7.4 ms         | One `Bitmap Heap Scan`, four CTE passes   |
 
 **Every query stays well under the 100 ms target at 10k rows.**
 
@@ -26,15 +26,15 @@ A snapshot of how the Salary Management backend performs at the target scale of 
 
 ### Indexes on `employees`
 
-| Index                                | Purpose                                                |
-|--------------------------------------|--------------------------------------------------------|
-| `employees_pkey` (id)                | Primary key, lookups by id                             |
-| `employees_email_key` (email)        | Unique constraint, conflict detection on create/update |
+| Index                                                | Purpose                                                   |
+| ---------------------------------------------------- | --------------------------------------------------------- |
+| `employees_pkey` (id)                                | Primary key, lookups by id                                |
+| `employees_email_key` (email)                        | Unique constraint, conflict detection on create/update    |
 | `employees_active_idx (id) WHERE deleted_at IS NULL` | Cheap "active rows" filter — used by virtually every read |
-| `idx_employees_country`              | Filter by country                                      |
-| `idx_employees_job_title`            | Filter by job title                                    |
-| `idx_employees_country_job_title`    | Composite — covers the two hottest filter combos       |
-| `idx_employees_full_name_trgm` (gin) | `pg_trgm` GIN for substring/`ILIKE` search             |
+| `idx_employees_country`                              | Filter by country                                         |
+| `idx_employees_job_title`                            | Filter by job title                                       |
+| `idx_employees_country_job_title`                    | Composite — covers the two hottest filter combos          |
+| `idx_employees_full_name_trgm` (gin)                 | `pg_trgm` GIN for substring/`ILIKE` search                |
 
 ### Design rationale
 
@@ -46,7 +46,7 @@ See [`query-plans.md`](query-plans.md) for the full `EXPLAIN ANALYZE` output of 
 
 ### A note on planner statistics
 
-After a fresh bulk seed, PostgreSQL row estimates can be off (`rows=1` vs actual `rows=1002`) because `ANALYZE` hasn't run on the new data yet. Running `ANALYZE employees;` after a large seed sharpens the planner's decisions, and matters more as the dataset grows. The seed script does **not** currently run this automatically — see *Productionisation next steps* below.
+After a fresh bulk seed, PostgreSQL row estimates can be off until statistics are refreshed. The seed script runs **`ANALYZE employees`** by default after insert (skip with `--no-analyze`). This sharpens the planner's decisions and matters more as the dataset grows.
 
 ---
 
@@ -60,9 +60,9 @@ The seed pipeline is built around **PostgreSQL `COPY ... FROM STDIN`** via [`pg-
 
 Recorded numbers on a MacBook Pro M2 (PostgreSQL 16 in Docker, `--batch-size=1000`):
 
-| Rows    | Wall time | Throughput        |
-|---------|-----------|-------------------|
-| 10 000  | ~0.5 s    | ~20 000 rows/sec  |
+| Rows    | Wall time | Throughput              |
+| ------- | --------- | ----------------------- |
+| 10 000  | ~0.5 s    | ~20 000 rows/sec        |
 | 100 000 | ~3–4 s    | ~25 000–33 000 rows/sec |
 
 Full CLI reference and methodology in [`seed.md`](seed.md).

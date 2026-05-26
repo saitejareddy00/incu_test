@@ -26,6 +26,11 @@ describe('parseArgs — valid flags', () => {
     expect(parseArgs([]).truncate).toBe(false);
   });
 
+  it('parses --no-analyze to disable ANALYZE', () => {
+    expect(parseArgs(['--no-analyze']).analyze).toBe(false);
+    expect(parseArgs([]).analyze).toBe(true);
+  });
+
   it('parses --batch-size (kebab-case)', () => {
     expect(parseArgs(['--batch-size', '250']).batchSize).toBe(250);
     expect(parseArgs(['--batch-size=250']).batchSize).toBe(250);

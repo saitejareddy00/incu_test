@@ -36,10 +36,7 @@ describe('AppShell', () => {
 
   it('Employees link points to /employees', () => {
     renderShell();
-    expect(screen.getByRole('link', { name: /employees/i })).toHaveAttribute(
-      'href',
-      '/employees',
-    );
+    expect(screen.getByRole('link', { name: /employees/i })).toHaveAttribute('href', '/employees');
   });
 
   it('Insights link points to /insights', () => {

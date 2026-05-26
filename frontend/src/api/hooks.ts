@@ -1,10 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeesClient, insightsClient } from './client';
-import type {
-  CreateEmployeeInput,
-  EmployeeListParams,
-  UpdateEmployeeInput,
-} from './types';
+import type { CreateEmployeeInput, EmployeeListParams, UpdateEmployeeInput } from './types';
 
 // ── Query keys ────────────────────────────────────────────────────────────────
 

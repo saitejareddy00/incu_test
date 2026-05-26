@@ -36,7 +36,9 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 function formatSalary(cents: number, currency: string) {
   try {
     return new Intl.NumberFormat('en-US', {
-      style: 'currency', currency, maximumFractionDigits: 0,
+      style: 'currency',
+      currency,
+      maximumFractionDigits: 0,
     }).format(cents / 100);
   } catch {
     return `${currency} ${(cents / 100).toLocaleString()}`;
@@ -143,26 +145,22 @@ export default function EmployeeDetailPage() {
             <Field label="Currency" value={employee.currency} />
           </Grid>
           <Grid item xs={6} sm={4}>
-            <Field
-              label="Salary"
-              value={formatSalary(employee.salaryCents, employee.currency)}
-            />
+            <Field label="Salary" value={formatSalary(employee.salaryCents, employee.currency)} />
           </Grid>
           <Grid item xs={6} sm={4}>
             <Field label="Hire Date" value={formatDate(employee.hireDate)} />
           </Grid>
           <Grid item xs={12} sm={4}>
-            <Field label="Employee ID" value={<code style={{ fontSize: 11 }}>{employee.id}</code>} />
+            <Field
+              label="Employee ID"
+              value={<code style={{ fontSize: 11 }}>{employee.id}</code>}
+            />
           </Grid>
         </Grid>
       </Paper>
 
       {/* ── Dialogs ─────────────────────────────────────────────────── */}
-      <EmployeeFormDialog
-        open={editOpen}
-        employee={employee}
-        onClose={() => setEditOpen(false)}
-      />
+      <EmployeeFormDialog open={editOpen} employee={employee} onClose={() => setEditOpen(false)} />
       <DeleteEmployeeDialog
         open={deleteOpen}
         employeeId={employee.id}

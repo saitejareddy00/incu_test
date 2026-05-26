@@ -18,59 +18,55 @@ import type { CreateEmployeeInput, EmployeeRow, UpdateEmployeeInput } from './sc
  *  - Translates repository nulls into NotFoundError (404).
  *  - Lets ConflictError from the repository propagate unchanged (409).
  *
- * Input validation (Zod parsing) is the controller's concern; this layer
- * accepts already-typed values.
+ * Pass an optional `client` in tests to run all operations inside an existing
+ * transaction (e.g. withTestDb BEGIN…ROLLBACK).
  */
 export class EmployeeService {
-  constructor(private readonly pool: pg.Pool) {}
+  constructor(
+    private readonly pool: pg.Pool,
+    private readonly boundClient?: pg.PoolClient,
+  ) {}
 
-  async create(input: CreateEmployeeInput): Promise<EmployeeRow> {
+  private async withClient<T>(fn: (client: pg.PoolClient) => Promise<T>): Promise<T> {
+    if (this.boundClient) {
+      return fn(this.boundClient);
+    }
     const client = await this.pool.connect();
     try {
-      return await createEmployee(client, input);
+      return await fn(client);
     } finally {
       client.release();
     }
+  }
+
+  async create(input: CreateEmployeeInput): Promise<EmployeeRow> {
+    return this.withClient((client) => createEmployee(client, input));
   }
 
   async getById(id: string): Promise<EmployeeRow> {
-    const client = await this.pool.connect();
-    try {
+    return this.withClient(async (client) => {
       const row = await getEmployeeById(client, id);
       if (!row) throw new NotFoundError(`Employee '${id}' not found`);
       return row;
-    } finally {
-      client.release();
-    }
+    });
   }
 
   async list(params: ListEmployeesParams): Promise<ListEmployeesResult> {
-    const client = await this.pool.connect();
-    try {
-      return await listEmployees(client, params);
-    } finally {
-      client.release();
-    }
+    return this.withClient((client) => listEmployees(client, params));
   }
 
   async update(id: string, patch: UpdateEmployeeInput): Promise<EmployeeRow> {
-    const client = await this.pool.connect();
-    try {
+    return this.withClient(async (client) => {
       const row = await updateEmployee(client, id, patch);
       if (!row) throw new NotFoundError(`Employee '${id}' not found`);
       return row;
-    } finally {
-      client.release();
-    }
+    });
   }
 
   async delete(id: string): Promise<void> {
-    const client = await this.pool.connect();
-    try {
+    return this.withClient(async (client) => {
       const deleted = await deleteEmployee(client, id);
       if (!deleted) throw new NotFoundError(`Employee '${id}' not found`);
-    } finally {
-      client.release();
-    }
+    });
   }
 }

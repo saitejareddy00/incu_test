@@ -25,12 +25,8 @@ const server = setupServer(
     }
     return HttpResponse.json({ jobTitles: [] });
   }),
-  http.get('/api/insights/country/US/job-title/Engineer', () =>
-    HttpResponse.json(ENGINEER_STATS),
-  ),
-  http.get('/api/insights/country/US/job-title/Manager', () =>
-    HttpResponse.json(MANAGER_STATS),
-  ),
+  http.get('/api/insights/country/US/job-title/Engineer', () => HttpResponse.json(ENGINEER_STATS)),
+  http.get('/api/insights/country/US/job-title/Manager', () => HttpResponse.json(MANAGER_STATS)),
 );
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }));
@@ -39,10 +35,9 @@ afterAll(() => server.close());
 
 function renderPage(initialPath = '/insights?country=US') {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const router = createMemoryRouter(
-    [{ path: '/insights', element: <InsightsPage /> }],
-    { initialEntries: [initialPath] },
-  );
+  const router = createMemoryRouter([{ path: '/insights', element: <InsightsPage /> }], {
+    initialEntries: [initialPath],
+  });
   render(
     <ThemeProvider theme={theme}>
       <QueryClientProvider client={qc}>
@@ -96,7 +91,9 @@ describe('InsightsPage — country view', () => {
   it('loads role chips after country is selected', async () => {
     renderPage('/insights?country=US');
     await waitForCountryOverview();
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Engineer' })).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Engineer' })).toBeInTheDocument(),
+    );
     expect(screen.getByRole('button', { name: 'Manager' })).toBeInTheDocument();
   });
 });
@@ -113,7 +110,9 @@ describe('InsightsPage — country + job title view', () => {
   it('shows role focus when a role chip is clicked', async () => {
     renderPage('/insights?country=US');
     await waitForCountryOverview();
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Manager' })).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Manager' })).toBeInTheDocument(),
+    );
 
     await userEvent.click(screen.getByRole('button', { name: 'Manager' }));
 
@@ -125,7 +124,9 @@ describe('InsightsPage — country + job title view', () => {
   it('updates the URL when a role chip is selected', async () => {
     const router = renderPage('/insights?country=US');
     await waitForCountryOverview();
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Engineer' })).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Engineer' })).toBeInTheDocument(),
+    );
 
     await userEvent.click(screen.getByRole('button', { name: 'Engineer' }));
 

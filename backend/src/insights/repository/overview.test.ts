@@ -66,7 +66,11 @@ describe('getOverviewMetrics', () => {
 
     const metrics = await getOverviewMetrics(pool);
 
-    expect(metrics.topCountriesByAvgSalary[0]).toMatchObject({ country: 'US', avg: 200_000, count: 1 });
+    expect(metrics.topCountriesByAvgSalary[0]).toMatchObject({
+      country: 'US',
+      avg: 200_000,
+      count: 1,
+    });
     expect(metrics.topCountriesByAvgSalary[1].country).toBe('GB');
     expect(metrics.topCountriesByAvgSalary[2].country).toBe('DE');
   });
@@ -78,7 +82,11 @@ describe('getOverviewMetrics', () => {
 
     const metrics = await getOverviewMetrics(pool);
 
-    expect(metrics.topJobTitlesByAvgSalary[0]).toMatchObject({ jobTitle: 'Manager', avg: 160_000, count: 1 });
+    expect(metrics.topJobTitlesByAvgSalary[0]).toMatchObject({
+      jobTitle: 'Manager',
+      avg: 160_000,
+      count: 1,
+    });
     expect(metrics.topJobTitlesByAvgSalary[1].jobTitle).toBe('Engineer');
   });
 

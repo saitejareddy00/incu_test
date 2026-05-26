@@ -26,9 +26,7 @@ const OVERVIEW = {
   ],
 };
 
-const server = setupServer(
-  http.get('/api/insights/overview', () => HttpResponse.json(OVERVIEW)),
-);
+const server = setupServer(http.get('/api/insights/overview', () => HttpResponse.json(OVERVIEW)));
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }));
 afterEach(() => server.resetHandlers());
@@ -62,7 +60,12 @@ describe('DashboardPage', () => {
 
   it('renders countries in the default chart view', async () => {
     renderPage();
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Countries' })).toHaveAttribute('aria-pressed', 'true'));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Countries' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      ),
+    );
     expect(screen.getByText('United Kingdom')).toBeInTheDocument();
   });
 
@@ -80,16 +83,19 @@ describe('DashboardPage', () => {
     renderPage();
     await waitFor(() => screen.getByRole('button', { name: 'Countries' }));
 
-    const countryLink = screen.getAllByRole('link').find((el) =>
-      el.getAttribute('href') === '/insights?country=US',
-    );
+    const countryLink = screen
+      .getAllByRole('link')
+      .find((el) => el.getAttribute('href') === '/insights?country=US');
     expect(countryLink).toBeDefined();
   });
 
   it('shows an error message when the API fails', async () => {
     server.use(
       http.get('/api/insights/overview', () =>
-        HttpResponse.json({ error: { code: 'INTERNAL', message: 'Server error' } }, { status: 500 }),
+        HttpResponse.json(
+          { error: { code: 'INTERNAL', message: 'Server error' } },
+          { status: 500 },
+        ),
       ),
     );
     renderPage();

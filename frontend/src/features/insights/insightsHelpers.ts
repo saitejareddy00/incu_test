@@ -24,7 +24,9 @@ export function countryInsightBullets(stats: CountryStats): string[] {
     );
   }
 
-  bullets.push(`Pay ranges from ${formatSalaryCents(stats.min)} to ${formatSalaryCents(stats.max)} (${formatSalaryCents(spread)} spread).`);
+  bullets.push(
+    `Pay ranges from ${formatSalaryCents(stats.min)} to ${formatSalaryCents(stats.max)} (${formatSalaryCents(spread)} spread).`,
+  );
 
   return bullets;
 }
@@ -40,9 +42,13 @@ export function roleInsightBullets(
   ];
 
   if (role.avg > country.avg) {
-    bullets.push('This role pays above the country median, which may affect overall compensation benchmarks.');
+    bullets.push(
+      'This role pays above the country median, which may affect overall compensation benchmarks.',
+    );
   } else if (role.avg < country.avg) {
-    bullets.push('This role pays below the country average; useful when benchmarking new hires in this track.');
+    bullets.push(
+      'This role pays below the country average; useful when benchmarking new hires in this track.',
+    );
   }
 
   return bullets;
