@@ -63,7 +63,6 @@ const validInput = {
   country: 'US',
   department: 'Engineering',
   salaryDollars: 120000,
-  currency: 'USD',
   hireDate: '2024-01-15',
 };
 
@@ -82,7 +81,6 @@ async function fillForm(overrides: Partial<typeof validInput> = {}) {
 
   await userEvent.clear(screen.getByLabelText(/annual salary/i));
   await userEvent.type(screen.getByLabelText(/annual salary/i), String(values.salaryDollars));
-  await userEvent.type(screen.getByLabelText(/currency/i), values.currency);
   const dateInput = screen.getByLabelText(/joining date/i);
   await userEvent.clear(dateInput);
   await userEvent.type(dateInput, values.hireDate);
@@ -119,6 +117,7 @@ describe('EmployeeFormDialog — create mode', () => {
     await userEvent.click(screen.getByRole('button', { name: /save/i }));
     await waitFor(() => expect(onClose).toHaveBeenCalled());
     expect(postedBody?.salaryCents).toBe(12_000_000);
+    expect(postedBody?.currency).toBe('USD');
   });
 
   it('shows a 409 conflict as an email field error', async () => {

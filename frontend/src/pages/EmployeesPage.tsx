@@ -113,9 +113,9 @@ const BASE_COLUMNS: Column<Employee>[] = [
     key: 'salaryCents',
     label: 'Salary',
     sortable: true,
-    render: (v, row) => (
+    render: (v) => (
       <Typography variant="body2" sx={{ fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>
-        {formatSalaryCents(v as number, row.currency)}
+        {formatSalaryCents(v as number)}
       </Typography>
     ),
   },

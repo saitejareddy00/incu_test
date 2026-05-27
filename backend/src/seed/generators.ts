@@ -1,3 +1,4 @@
+import { EMPLOYEE_CURRENCY } from '../employees/currency';
 import { type Rng, pick, randInt } from './prng';
 
 // ── Static domain lists ───────────────────────────────────────────────────────
@@ -61,29 +62,6 @@ export const DEPARTMENTS = [
   'Marketing',
   'Legal',
 ] as const;
-
-export const CURRENCIES: Record<string, string> = {
-  US: 'USD',
-  GB: 'GBP',
-  DE: 'EUR',
-  FR: 'EUR',
-  CA: 'CAD',
-  AU: 'AUD',
-  IN: 'INR',
-  BR: 'BRL',
-  SG: 'SGD',
-  JP: 'JPY',
-  NL: 'EUR',
-  SE: 'SEK',
-  CH: 'CHF',
-  ES: 'EUR',
-  IT: 'EUR',
-  PL: 'PLN',
-  MX: 'MXN',
-  ZA: 'ZAR',
-  KR: 'KRW',
-  AE: 'AED',
-};
 
 // ── Generators ────────────────────────────────────────────────────────────────
 
@@ -156,7 +134,7 @@ export function generateRow(
   const department = generateDepartment(rng);
   const salaryCents = generateSalaryCents(rng);
   const hireDate = generateHireDate(rng);
-  const currency = CURRENCIES[country] ?? 'USD';
+  const currency = EMPLOYEE_CURRENCY;
   // Row index in email ensures global uniqueness regardless of name collisions.
   const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}.${index}@example.com`.replace(
     /\s+/g,

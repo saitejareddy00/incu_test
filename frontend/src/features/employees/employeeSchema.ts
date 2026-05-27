@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+/** Legacy/shared schema — compensation is always USD. */
 export const employeeSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
@@ -11,12 +12,11 @@ export const employeeSchema = z.object({
     .number({ invalid_type_error: 'Salary must be a number' })
     .int('Salary must be a whole number')
     .positive('Salary must be greater than 0'),
-  currency: z.string().length(3, 'Must be a 3-letter currency code').toUpperCase(),
+  currency: z.literal('USD'),
   hireDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD'),
 });
 
 export type EmployeeFormValues = z.infer<typeof employeeSchema>;
 
-/** Partial version used by the edit form. */
 export const updateEmployeeSchema = employeeSchema.partial();
 export type UpdateEmployeeFormValues = z.infer<typeof updateEmployeeSchema>;

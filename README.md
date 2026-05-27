@@ -192,6 +192,12 @@ This matches the HR workflow: the directory shows historical records, while comp
 
 ---
 
+## Compensation currency
+
+All salaries are stored and displayed in **USD** only. Employees may work in any country, but `salary_cents` is always US dollars so insights (`avg`, `median`, `min`, `max`) can be aggregated without foreign-exchange conversion. The seed script, API validation, and UI enforce `currency = 'USD'` (see migration `004_enforce_usd_currency.sql`).
+
+---
+
 ## Architecture notes
 
 - **Single `employees` table.** Salary stored as `bigint` cents (no float precision issues). `full_name` is a generated stored column. Soft-delete via nullable `deleted_at`.

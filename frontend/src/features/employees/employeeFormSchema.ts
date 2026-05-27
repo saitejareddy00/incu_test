@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { CreateEmployeeInput } from '../../api/types';
 import type { Employee } from '../../api/types';
 
-/** UI form schema — salary entered in whole currency units (dollars, etc.). */
+/** UI form schema — annual salary in US dollars (stored as cents). */
 export const employeeFormSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
@@ -14,7 +14,6 @@ export const employeeFormSchema = z.object({
     .number({ invalid_type_error: 'Salary must be a number' })
     .positive('Salary must be greater than 0')
     .max(10_000_000, 'Salary is too large'),
-  currency: z.string().length(3, 'Must be a 3-letter currency code').toUpperCase(),
   hireDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD'),
 });
 
@@ -25,6 +24,7 @@ export function formToApiInput(values: EmployeeFormUiValues): CreateEmployeeInpu
   return {
     ...rest,
     salaryCents: Math.round(salaryDollars * 100),
+    currency: 'USD',
   };
 }
 
@@ -37,7 +37,6 @@ export function employeeToFormDefaults(emp: Employee): EmployeeFormUiValues {
     country: emp.country,
     department: emp.department,
     salaryDollars: emp.salaryCents / 100,
-    currency: emp.currency,
     hireDate: emp.hireDate.slice(0, 10),
   };
 }

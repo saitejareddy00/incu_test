@@ -19,6 +19,7 @@ import { ApiResponseError } from '../api/types';
 import { DeleteEmployeeDialog } from '../features/employees/DeleteEmployeeDialog';
 import { EmployeeFormDialog } from '../features/employees/EmployeeFormDialog';
 import { formatDate } from '../utils/formatDate';
+import { formatSalaryCents } from '../utils/formatSalary';
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -31,18 +32,6 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
       </Typography>
     </Box>
   );
-}
-
-function formatSalary(cents: number, currency: string) {
-  try {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-      maximumFractionDigits: 0,
-    }).format(cents / 100);
-  } catch {
-    return `${currency} ${(cents / 100).toLocaleString()}`;
-  }
 }
 
 export default function EmployeeDetailPage() {
@@ -141,11 +130,8 @@ export default function EmployeeDetailPage() {
               value={<Chip label={employee.country} size="small" sx={{ fontSize: 11 }} />}
             />
           </Grid>
-          <Grid item xs={6} sm={3}>
-            <Field label="Currency" value={employee.currency} />
-          </Grid>
-          <Grid item xs={6} sm={4}>
-            <Field label="Salary" value={formatSalary(employee.salaryCents, employee.currency)} />
+          <Grid item xs={12} sm={6}>
+            <Field label="Salary (USD)" value={formatSalaryCents(employee.salaryCents)} />
           </Grid>
           <Grid item xs={6} sm={4}>
             <Field label="Hire Date" value={formatDate(employee.hireDate)} />

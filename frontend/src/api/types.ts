@@ -10,7 +10,8 @@ export interface Employee {
   country: string;
   department: string;
   salaryCents: number;
-  currency: string;
+  /** Always `USD` — insights aggregate salaries without FX conversion. */
+  currency: 'USD';
   hireDate: string;
   createdAt: string;
   updatedAt: string;
@@ -26,7 +27,8 @@ export interface CreateEmployeeInput {
   country: string;
   department: string;
   salaryCents: number;
-  currency: string;
+  /** Always `USD` — insights aggregate salaries without FX conversion. */
+  currency: 'USD';
   hireDate: string;
 }
 

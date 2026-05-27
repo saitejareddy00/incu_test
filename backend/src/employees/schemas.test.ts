@@ -75,6 +75,11 @@ describe('CreateEmployeeInputSchema', () => {
     expect(result.success).toBe(true);
     if (result.success) expect(result.data.currency).toBe('USD');
   });
+
+  it('rejects non-USD currency on create', () => {
+    const result = CreateEmployeeInputSchema.safeParse({ ...valid, currency: 'GBP' });
+    expect(result.success).toBe(false);
+  });
 });
 
 // ── UpdateEmployeeInputSchema ────────────────────────────────────────────────

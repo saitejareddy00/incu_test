@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { mulberry32 } from './prng';
+import { EMPLOYEE_CURRENCY } from '../employees/currency';
 import {
   COUNTRIES,
-  CURRENCIES,
   generateCountry,
   generateDepartment,
   generateHireDate,
@@ -88,12 +88,11 @@ describe('generateRow', () => {
     expect(unique.size).toBe(5);
   });
 
-  it('currency matches country via CURRENCIES map', () => {
+  it('always uses USD (no per-country currency)', () => {
     const rng = mulberry32(7);
     for (let i = 0; i < 50; i++) {
       const row = generateRow(rng, i, FIRST_NAMES, LAST_NAMES);
-      const expected = CURRENCIES[row.country] ?? 'USD';
-      expect(row.currency).toBe(expected);
+      expect(row.currency).toBe(EMPLOYEE_CURRENCY);
     }
   });
 

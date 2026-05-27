@@ -91,23 +91,22 @@ export function EmployeeFormDialog({ open, onClose, employee }: Props) {
     formState: { errors, isSubmitting },
   } = useForm<EmployeeFormUiValues>({
     resolver: zodResolver(employeeFormSchema),
-    defaultValues: employee ? employeeToFormDefaults(employee) : { currency: 'USD' },
+    defaultValues: employee ? employeeToFormDefaults(employee) : {},
   });
 
   const firstName = useWatch({ control, name: 'firstName' }) ?? '';
   const lastName = useWatch({ control, name: 'lastName' }) ?? '';
   const salaryDollars = useWatch({ control, name: 'salaryDollars' });
-  const currency = useWatch({ control, name: 'currency' }) ?? 'USD';
 
   const previewName = [firstName, lastName].filter(Boolean).join(' ') || 'New employee';
   const salaryPreview =
     typeof salaryDollars === 'number' && salaryDollars > 0
-      ? formatSalaryCents(Math.round(salaryDollars * 100), currency || 'USD')
+      ? formatSalaryCents(Math.round(salaryDollars * 100))
       : null;
 
   useEffect(() => {
     if (open) {
-      reset(employee ? employeeToFormDefaults(employee) : { currency: 'USD' });
+      reset(employee ? employeeToFormDefaults(employee) : {});
     }
   }, [open, employee, reset]);
 
@@ -328,41 +327,23 @@ export function EmployeeFormDialog({ open, onClose, employee }: Props) {
 
         <FormSection
           title="Compensation"
-          description="Annual salary in major currency units (stored as cents in the database)"
+          description="Annual salary in US dollars (stored as cents; all insights use USD)"
           icon={<AttachMoneyOutlinedIcon fontSize="small" />}
         >
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={8}>
-              <TextField
-                label="Annual salary"
-                fullWidth
-                size="small"
-                type="number"
-                inputProps={{ min: 0, step: 1000 }}
-                placeholder="120000"
-                {...register('salaryDollars', { valueAsNumber: true })}
-                error={Boolean(errors.salaryDollars)}
-                helperText={
-                  errors.salaryDollars?.message ??
-                  (salaryPreview
-                    ? `Stored as ${salaryPreview}`
-                    : 'Enter amount before tax/deductions')
-                }
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                label="Currency"
-                fullWidth
-                size="small"
-                placeholder="USD"
-                inputProps={{ maxLength: 3, style: { textTransform: 'uppercase' } }}
-                {...register('currency')}
-                error={Boolean(errors.currency)}
-                helperText={errors.currency?.message}
-              />
-            </Grid>
-          </Grid>
+          <TextField
+            label="Annual salary (USD)"
+            fullWidth
+            size="small"
+            type="number"
+            inputProps={{ min: 0, step: 1000 }}
+            placeholder="120000"
+            {...register('salaryDollars', { valueAsNumber: true })}
+            error={Boolean(errors.salaryDollars)}
+            helperText={
+              errors.salaryDollars?.message ??
+              (salaryPreview ? `Stored as ${salaryPreview}` : 'Enter amount before tax/deductions')
+            }
+          />
         </FormSection>
 
         <DialogActions

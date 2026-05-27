@@ -132,23 +132,27 @@ function CountryOverview({ stats, label }: { stats: CountryStats; label: string 
             </Grid>
             <Grid item xs={6} sm={4}>
               <KpiCard
-                label="Average"
+                label="Average (USD)"
                 value={formatSalaryCents(stats.avg)}
                 icon={<ShowChartIcon fontSize="small" />}
               />
             </Grid>
             <Grid item xs={6} sm={4}>
               <KpiCard
-                label="Median"
+                label="Median (USD)"
                 value={formatSalaryCents(stats.median)}
                 icon={<TrendingUpIcon fontSize="small" />}
               />
             </Grid>
             <Grid item xs={6} sm={4}>
-              <KpiCard label="Minimum" value={formatSalaryCents(stats.min)} detail="Floor" />
+              <KpiCard label="Minimum (USD)" value={formatSalaryCents(stats.min)} detail="Floor" />
             </Grid>
             <Grid item xs={6} sm={4}>
-              <KpiCard label="Maximum" value={formatSalaryCents(stats.max)} detail="Ceiling" />
+              <KpiCard
+                label="Maximum (USD)"
+                value={formatSalaryCents(stats.max)}
+                detail="Ceiling"
+              />
             </Grid>
           </Grid>
         </Grid>
@@ -227,7 +231,7 @@ function RoleFocus({
       <Grid container spacing={2}>
         <Grid item xs={12} sm={4}>
           <KpiCard
-            label="Role average"
+            label="Role average (USD)"
             value={formatSalaryCents(data.avg)}
             detail={`${data.count} employees`}
             icon={<WorkOutlineIcon fontSize="small" />}

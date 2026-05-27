@@ -38,7 +38,7 @@ const EMPLOYEES = [
     country: 'GB',
     department: 'Sales',
     salaryCents: 150_000,
-    currency: 'GBP',
+    currency: 'USD',
     hireDate: '2023-06-01',
     createdAt: '2023-06-01T00:00:00Z',
     updatedAt: '2023-06-01T00:00:00Z',

@@ -92,6 +92,10 @@ Name files (`first_names.txt` / `last_names.txt`) are read **once** per run
 using Node's `readline` + `fs.createReadStream` (line-by-line streaming).  
 The resulting arrays are passed down by reference — never re-read per row.
 
+### Currency
+
+Every seeded row uses **USD** (`salary_cents` is a US-dollar amount). Country codes are geographic only; we do not assign local currencies per country.
+
 ### Email uniqueness
 
 The row index is embedded in each email address
