@@ -1,3 +1,4 @@
+import { EMPLOYEE_CURRENCY } from '../currency';
 import type { EmployeeRow } from '../schemas';
 
 /**
@@ -30,11 +31,15 @@ export const EMPLOYEE_COLUMNS = `
  */
 export function toRow(raw: Record<string, unknown>): EmployeeRow {
   const deletedAt = raw.deletedAt != null ? (raw.deletedAt as Date) : null;
+  const currency = (raw.currency as string).trim();
+  if (currency !== EMPLOYEE_CURRENCY) {
+    throw new Error(`Expected currency ${EMPLOYEE_CURRENCY}, got ${currency}`);
+  }
   return {
     ...(raw as EmployeeRow),
     salaryCents: Number(raw.salaryCents),
     country: (raw.country as string).trim(),
-    currency: (raw.currency as string).trim(),
+    currency: EMPLOYEE_CURRENCY,
     isDeleted: Boolean(raw.isDeleted),
     deletedAt,
   };

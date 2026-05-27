@@ -12,7 +12,6 @@ const COLUMN_MAP: Record<keyof UpdateEmployeeInput, string> = {
   country: 'country',
   department: 'department',
   salaryCents: 'salary_cents',
-  currency: 'currency',
   hireDate: 'hire_date',
 };
 
