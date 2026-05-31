@@ -6,7 +6,9 @@ import { EMPLOYEE_CURRENCY } from './currency';
 const nonBlankString = z.string().min(1, 'Must not be blank');
 const twoLetterCountry = z.string().length(2, 'Must be an ISO-3166 alpha-2 code');
 const usdCurrency = z.literal(EMPLOYEE_CURRENCY, {
-  errorMap: () => ({ message: 'Only USD is supported (salaries are not converted for aggregation)' }),
+  errorMap: () => ({
+    message: 'Only USD is supported (salaries are not converted for aggregation)',
+  }),
 });
 const positiveCents = z.number().int().positive('salary_cents must be > 0');
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be a YYYY-MM-DD date');
