@@ -18,12 +18,13 @@ function buildWhereClause(
     conditions.push(`country = $${params.length}`);
   }
   if (filters.jobTitle) {
-    params.push(filters.jobTitle);
-    conditions.push(`job_title = $${params.length}`);
+    params.push(`%${filters.jobTitle}%`);
+    conditions.push(`job_title ILIKE $${params.length}`);
   }
   if (filters.q) {
     params.push(`%${filters.q}%`);
-    conditions.push(`full_name ILIKE $${params.length}`);
+    const idx = params.length;
+    conditions.push(`(full_name ILIKE $${idx} OR email ILIKE $${idx})`);
   }
 
   return {

@@ -82,16 +82,16 @@ const QUERIES: QueryPlan[] = [
     params: ['US'],
   },
   {
-    label: 'listEmployees — job_title filter (idx_employees_job_title)',
+    label: 'listEmployees — job_title filter (idx_employees_job_title_trgm)',
     sql: `SELECT id, first_name, last_name, full_name, email, job_title,
                  country, department, salary_cents, currency, hire_date,
                  created_at, updated_at
           FROM employees
           WHERE deleted_at IS NULL
-            AND job_title = $1
+            AND job_title ILIKE $1
           ORDER BY full_name ASC
           LIMIT 20 OFFSET 0`,
-    params: ['Engineer'],
+    params: ['%Engineer%'],
   },
   {
     label: 'listEmployees — country + job_title (idx_employees_country_job_title)',
@@ -101,23 +101,23 @@ const QUERIES: QueryPlan[] = [
           FROM employees
           WHERE deleted_at IS NULL
             AND country   = $1
-            AND job_title = $2
+            AND job_title ILIKE $2
           ORDER BY full_name ASC
           LIMIT 20 OFFSET 0`,
-    params: ['US', 'Engineer'],
+    params: ['US', '%Engineer%'],
   },
   {
-    label: 'listEmployees — full-name search ILIKE (idx_employees_full_name_trgm)',
+    label: 'listEmployees — name/email search ILIKE (trgm indexes)',
     sql: `SELECT id, first_name, last_name, full_name, email, job_title,
                  country, department, salary_cents, currency, hire_date,
                  created_at, updated_at
           FROM employees
           WHERE deleted_at IS NULL
-            AND full_name ILIKE $1
+            AND (full_name ILIKE $1 OR email ILIKE $1)
           ORDER BY full_name ASC
           LIMIT 20 OFFSET 0`,
     params: ['%First1%'],
-    note: 'GIN trigram index kicks in when the pattern contains ≥ 3 fixed characters.',
+    note: 'GIN trigram indexes (full_name, email) apply when the pattern has ≥ 3 fixed characters.',
   },
   {
     label: 'getCountryStats — salary aggregates for one country',
