@@ -34,6 +34,19 @@ function makeMockClient(appliedMigrations: string[] = []) {
   return { query, release };
 }
 
+/** Filenames recorded by INSERT INTO schema_migrations, in call order. */
+function appliedFilenamesFromInserts(query: ReturnType<typeof vi.fn>): string[] {
+  return query.mock.calls.flatMap((call: unknown) => {
+    if (!Array.isArray(call) || call.length < 2) return [];
+    const [sql, params] = call as [string, unknown];
+    if (typeof sql !== 'string' || !sql.trim().startsWith('INSERT INTO schema_migrations')) {
+      return [];
+    }
+    if (!Array.isArray(params) || typeof params[0] !== 'string') return [];
+    return [params[0]];
+  });
+}
+
 /** Builds a mock pg.Pool whose connect() returns the provided mock client. */
 function makeMockPool(mockClient: ReturnType<typeof makeMockClient>) {
   return {
@@ -57,7 +70,7 @@ describe('runMigrations', () => {
     if (tmpDir) fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('applies new migrations in lexicographic order', async () => {
+  it('applies new migrations in numeric filename order', async () => {
     tmpDir = makeTmpMigrationsDir({
       '002_add_index.sql': 'CREATE INDEX idx ON foo (bar);',
       '001_create_foo.sql': 'CREATE TABLE foo (id serial PRIMARY KEY);',
@@ -68,13 +81,29 @@ describe('runMigrations', () => {
 
     await runMigrations(pool as never, tmpDir);
 
-    const insertCalls = client.query.mock.calls.filter(([sql]: [string]) =>
-      sql.trim().startsWith('INSERT INTO schema_migrations'),
-    );
-    expect(insertCalls).toHaveLength(2);
-    // params[0] is the filename — order must be lexicographic
-    expect(insertCalls[0][1]).toContain('001_create_foo.sql');
-    expect(insertCalls[1][1]).toContain('002_add_index.sql');
+    expect(appliedFilenamesFromInserts(client.query)).toEqual([
+      '001_create_foo.sql',
+      '002_add_index.sql',
+    ]);
+  });
+
+  it('orders numeric prefixes naturally (0010 after 002, not before 001)', async () => {
+    tmpDir = makeTmpMigrationsDir({
+      '0010_tenth.sql': 'SELECT 10;',
+      '002_second.sql': 'SELECT 2;',
+      '001_first.sql': 'SELECT 1;',
+    });
+
+    const client = makeMockClient([]);
+    const pool = makeMockPool(client);
+
+    await runMigrations(pool as never, tmpDir);
+
+    expect(appliedFilenamesFromInserts(client.query)).toEqual([
+      '001_first.sql',
+      '002_second.sql',
+      '0010_tenth.sql',
+    ]);
   });
 
   it('skips already-applied migrations', async () => {
@@ -88,11 +117,7 @@ describe('runMigrations', () => {
 
     await runMigrations(pool as never, tmpDir);
 
-    const insertCalls = client.query.mock.calls.filter(([sql]: [string]) =>
-      sql.trim().startsWith('INSERT INTO schema_migrations'),
-    );
-    expect(insertCalls).toHaveLength(1);
-    expect(insertCalls[0][1]).toContain('002_add_index.sql');
+    expect(appliedFilenamesFromInserts(client.query)).toEqual(['002_add_index.sql']);
   });
 
   it('is idempotent — running twice with all applied does nothing', async () => {
@@ -106,10 +131,7 @@ describe('runMigrations', () => {
     await runMigrations(pool as never, tmpDir);
     await runMigrations(pool as never, tmpDir);
 
-    const insertCalls = client.query.mock.calls.filter(([sql]: [string]) =>
-      sql.trim().startsWith('INSERT INTO schema_migrations'),
-    );
-    expect(insertCalls).toHaveLength(0);
+    expect(appliedFilenamesFromInserts(client.query)).toHaveLength(0);
   });
 
   it('rolls back the transaction and rethrows on error', async () => {
