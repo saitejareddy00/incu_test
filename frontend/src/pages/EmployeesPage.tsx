@@ -165,6 +165,7 @@ export default function EmployeesPage() {
 
   const debouncedQ = useDebouncedValue(q, FILTER_DEBOUNCE_MS);
   const debouncedJobTitle = useDebouncedValue(jobTitle, FILTER_DEBOUNCE_MS);
+  const debouncedPage = useDebouncedValue(page, FILTER_DEBOUNCE_MS);
 
   const filtersMounted = useRef(false);
   useEffect(() => {
@@ -199,7 +200,7 @@ export default function EmployeesPage() {
   ];
 
   const { data, isPending, isFetching } = useEmployees({
-    page,
+    page: debouncedPage,
     pageSize,
     country: country || undefined,
     jobTitle: debouncedJobTitle || undefined,
