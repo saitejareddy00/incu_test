@@ -10,7 +10,7 @@ const baseInput = {
   country: 'US',
   department: 'Engineering',
   salaryCents: 120_000,
-  currency: 'USD',
+  currency: 'USD' as const,
   hireDate: '2024-01-15',
 };
 
@@ -94,13 +94,16 @@ describe('listEmployees', () => {
     });
   });
 
-  it('filters by jobTitle', async () => {
+  it('filters by jobTitle param (contains match)', async () => {
     await withTestDb(async (client) => {
       for (const e of employees) await createEmployee(client, e);
 
       const result = await listEmployees(client, { jobTitle: 'Engineer' });
       expect(result.total).toBe(3);
       expect(result.data.every((r) => r.jobTitle === 'Engineer')).toBe(true);
+
+      const partial = await listEmployees(client, { jobTitle: 'Eng' });
+      expect(partial.total).toBe(3);
     });
   });
 
@@ -121,6 +124,16 @@ describe('listEmployees', () => {
       const result = await listEmployees(client, { q: 'Carol' });
       expect(result.total).toBe(1);
       expect(result.data[0].firstName).toBe('Carol');
+    });
+  });
+
+  it('searches by email (q)', async () => {
+    await withTestDb(async (client) => {
+      for (const e of employees) await createEmployee(client, e);
+
+      const result = await listEmployees(client, { q: 'bob@example' });
+      expect(result.total).toBe(1);
+      expect(result.data[0].email).toBe('bob@example.com');
     });
   });
 
