@@ -35,11 +35,14 @@ describe('DeleteEmployeeDialog', () => {
     expect(screen.getByText(/alice smith/i)).toBeInTheDocument();
   });
 
-  it('calls DELETE and closes dialog on confirm', async () => {
+  it('calls DELETE, closes dialog on confirm and shows success toast', async () => {
     const onClose = vi.fn();
     wrap(<DeleteEmployeeDialog open employeeId="1" employeeName="Alice Smith" onClose={onClose} />);
     await userEvent.click(screen.getByRole('button', { name: /confirm|delete/i }));
     await waitFor(() => expect(onClose).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(screen.getByText(/alice smith has been deleted/i)).toBeInTheDocument(),
+    );
   });
 
   it('does NOT call DELETE when cancel is clicked', async () => {
