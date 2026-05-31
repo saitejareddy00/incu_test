@@ -4,6 +4,11 @@ import pg from 'pg';
 
 const DEFAULT_MIGRATIONS_DIR = path.join(__dirname, 'migrations');
 
+/** Order migration files by leading numeric prefix (001 … 002 … 010), then by name. */
+function compareMigrationFiles(a: string, b: string): number {
+  return a.localeCompare(b, undefined, { numeric: true });
+}
+
 const CREATE_MIGRATIONS_TABLE = `
   CREATE TABLE IF NOT EXISTS schema_migrations (
     filename   TEXT        PRIMARY KEY,
@@ -28,7 +33,7 @@ export async function runMigrations(
     const files = fs
       .readdirSync(migrationsDir)
       .filter((f) => f.endsWith('.sql'))
-      .sort();
+      .sort(compareMigrationFiles);
 
     for (const file of files) {
       if (applied.has(file)) continue;
