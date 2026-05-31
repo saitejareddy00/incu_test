@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../app/app';
 import { getTestPool } from '../test/helpers/db';
+import { baseInput } from './repository/create.test';
 
 // Create the app once — pool is lazy so no DB connection happens at load time.
 const app = createApp(getTestPool());
@@ -10,27 +11,15 @@ afterEach(async () => {
   await getTestPool().query('DELETE FROM employees');
 });
 
-const validInput = {
-  firstName: 'Alice',
-  lastName: 'Smith',
-  email: 'alice@example.com',
-  jobTitle: 'Engineer',
-  country: 'US',
-  department: 'Engineering',
-  salaryCents: 120_000,
-  currency: 'USD',
-  hireDate: '2024-01-15',
-};
-
 // ── POST /api/employees ───────────────────────────────────────────────────────
 
 describe('POST /api/employees', () => {
   it('creates an employee and returns 201 with the row', async () => {
-    const res = await request(app).post('/api/employees').send(validInput);
+    const res = await request(app).post('/api/employees').send(baseInput);
 
     expect(res.status).toBe(201);
     expect(res.body.id).toMatch(/^[0-9a-f-]{36}$/);
-    expect(res.body.email).toBe(validInput.email);
+    expect(res.body.email).toBe(baseInput.email);
     expect(res.body.fullName).toBe('Alice Smith');
   });
 
@@ -42,9 +31,9 @@ describe('POST /api/employees', () => {
   });
 
   it('returns 409 on duplicate email', async () => {
-    await request(app).post('/api/employees').send(validInput);
+    await request(app).post('/api/employees').send(baseInput);
 
-    const res = await request(app).post('/api/employees').send(validInput);
+    const res = await request(app).post('/api/employees').send(baseInput);
 
     expect(res.status).toBe(409);
     expect(res.body.error.code).toBe('CONFLICT');
@@ -62,10 +51,10 @@ describe('GET /api/employees', () => {
   });
 
   it('returns a paginated list with total', async () => {
-    await request(app).post('/api/employees').send(validInput);
+    await request(app).post('/api/employees').send(baseInput);
     await request(app)
       .post('/api/employees')
-      .send({ ...validInput, email: 'bob@example.com', firstName: 'Bob' });
+      .send({ ...baseInput, email: 'bob@example.com', firstName: 'Bob' });
 
     const res = await request(app).get('/api/employees').query({ page: 1, pageSize: 1 });
 
@@ -77,10 +66,10 @@ describe('GET /api/employees', () => {
   });
 
   it('filters by country', async () => {
-    await request(app).post('/api/employees').send(validInput);
+    await request(app).post('/api/employees').send(baseInput);
     await request(app)
       .post('/api/employees')
-      .send({ ...validInput, email: 'bob@example.com', country: 'GB' });
+      .send({ ...baseInput, email: 'bob@example.com', country: 'GB' });
 
     const res = await request(app).get('/api/employees').query({ country: 'GB' });
 
@@ -106,7 +95,7 @@ describe('GET /api/employees', () => {
   });
 
   it('includes soft-deleted employees with isDeleted and deletedAt', async () => {
-    const created = await request(app).post('/api/employees').send(validInput);
+    const created = await request(app).post('/api/employees').send(baseInput);
     await request(app).delete(`/api/employees/${created.body.id as string}`);
 
     const res = await request(app).get('/api/employees');
@@ -125,13 +114,13 @@ describe('GET /api/employees', () => {
 
 describe('GET /api/employees/:id', () => {
   it('returns 200 with the employee row', async () => {
-    const created = await request(app).post('/api/employees').send(validInput);
+    const created = await request(app).post('/api/employees').send(baseInput);
 
     const res = await request(app).get(`/api/employees/${created.body.id as string}`);
 
     expect(res.status).toBe(200);
     expect(res.body.id).toBe(created.body.id);
-    expect(res.body.email).toBe(validInput.email);
+    expect(res.body.email).toBe(baseInput.email);
   });
 
   it('returns 404 for an unknown id', async () => {
@@ -146,7 +135,7 @@ describe('GET /api/employees/:id', () => {
 
 describe('PATCH /api/employees/:id', () => {
   it('updates and returns 200 with the updated row', async () => {
-    const created = await request(app).post('/api/employees').send(validInput);
+    const created = await request(app).post('/api/employees').send(baseInput);
 
     const res = await request(app)
       .patch(`/api/employees/${created.body.id as string}`)
@@ -155,11 +144,11 @@ describe('PATCH /api/employees/:id', () => {
     expect(res.status).toBe(200);
     expect(res.body.jobTitle).toBe('Senior Engineer');
     expect(res.body.salaryCents).toBe(150_000);
-    expect(res.body.email).toBe(validInput.email);
+    expect(res.body.email).toBe(baseInput.email);
   });
 
   it('returns 400 for an invalid patch body', async () => {
-    const created = await request(app).post('/api/employees').send(validInput);
+    const created = await request(app).post('/api/employees').send(baseInput);
 
     const res = await request(app)
       .patch(`/api/employees/${created.body.id as string}`)
@@ -179,10 +168,10 @@ describe('PATCH /api/employees/:id', () => {
   });
 
   it('returns 409 on duplicate email', async () => {
-    const first = await request(app).post('/api/employees').send(validInput);
+    const first = await request(app).post('/api/employees').send(baseInput);
     const second = await request(app)
       .post('/api/employees')
-      .send({ ...validInput, email: 'bob@example.com' });
+      .send({ ...baseInput, email: 'bob@example.com' });
 
     const res = await request(app)
       .patch(`/api/employees/${second.body.id as string}`)
@@ -197,7 +186,7 @@ describe('PATCH /api/employees/:id', () => {
 
 describe('DELETE /api/employees/:id', () => {
   it('soft-deletes the employee and returns 204', async () => {
-    const created = await request(app).post('/api/employees').send(validInput);
+    const created = await request(app).post('/api/employees').send(baseInput);
 
     const res = await request(app).delete(`/api/employees/${created.body.id as string}`);
 

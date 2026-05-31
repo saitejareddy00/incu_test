@@ -11,7 +11,7 @@ const base = {
   country: 'US',
   department: 'Engineering',
   salaryCents: 100_000,
-  currency: 'USD',
+  currency: 'USD' as const,
   hireDate: '2024-01-15',
 };
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { withTestDb } from '../../test/helpers/db';
 import { createEmployee } from './index';
 
-const baseInput = {
+export const baseInput = {
   firstName: 'Alice',
   lastName: 'Smith',
   email: 'alice.smith@example.com',

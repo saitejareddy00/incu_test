@@ -1,18 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { withTestDb } from '../../test/helpers/db';
 import { createEmployee, deleteEmployee, getEmployeeById } from './index';
-
-const baseInput = {
-  firstName: 'Alice',
-  lastName: 'Smith',
-  email: 'alice.smith@example.com',
-  jobTitle: 'Engineer',
-  country: 'US',
-  department: 'Engineering',
-  salaryCents: 120_000,
-  currency: 'USD',
-  hireDate: '2024-01-15',
-};
+import { baseInput } from './create.test';
 
 describe('deleteEmployee', () => {
   it('soft-deletes an existing employee and returns true', async () => {
