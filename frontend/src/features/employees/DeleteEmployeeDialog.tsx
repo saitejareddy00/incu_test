@@ -16,6 +16,7 @@ export function DeleteEmployeeDialog({ open, employeeId, employeeName, onClose }
   async function handleConfirm() {
     try {
       await deleteMutation.mutateAsync(employeeId);
+      notify.success(`${employeeName} has been deleted`);
       onClose();
     } catch (err) {
       notify.error(err instanceof Error ? err.message : 'Failed to delete employee');
