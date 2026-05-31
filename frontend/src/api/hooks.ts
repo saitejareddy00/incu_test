@@ -11,6 +11,7 @@ export const queryKeys = {
     detail: (id: string) => ['employees', 'detail', id] as const,
   },
   insights: {
+    all: ['insights'] as const,
     overview: ['insights', 'overview'] as const,
     jobTitles: (country?: string) => ['insights', 'jobTitles', country ?? ''] as const,
     country: (country: string) => ['insights', 'country', country] as const,
@@ -41,7 +42,10 @@ export function useCreateEmployee() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateEmployeeInput) => employeesClient.create(input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.employees.all }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.employees.all });
+      void qc.invalidateQueries({ queryKey: queryKeys.insights.all });
+    },
   });
 }
 
@@ -51,6 +55,7 @@ export function useUpdateEmployee(id: string) {
     mutationFn: (patch: UpdateEmployeeInput) => employeesClient.update(id, patch),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: queryKeys.employees.all });
+      void qc.invalidateQueries({ queryKey: queryKeys.insights.all });
     },
   });
 }
@@ -59,7 +64,10 @@ export function useDeleteEmployee() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => employeesClient.delete(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.employees.all }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.employees.all });
+      void qc.invalidateQueries({ queryKey: queryKeys.insights.all });
+    },
   });
 }
 
