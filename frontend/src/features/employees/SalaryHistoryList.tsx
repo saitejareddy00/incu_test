@@ -1,16 +1,7 @@
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingFlatIcon from '@mui/icons-material/TrendingFlat';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import {
-  Box,
-  Chip,
-  Divider,
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
-  Typography,
-} from '@mui/material';
+import { Box, Chip, Divider, List, ListItem, ListItemText, Paper, Typography } from '@mui/material';
 import type { EmployeeHistoryEntry } from '../../api/types';
 import { formatDateTime } from '../../utils/formatDate';
 import { formatSalaryCents } from '../../utils/formatSalary';
@@ -74,7 +65,13 @@ export function SalaryHistoryList({ history }: Props) {
                           <ChangeIcon delta={delta} />
                           <Typography
                             variant="caption"
-                            color={delta > 0 ? 'success.main' : delta < 0 ? 'error.main' : 'text.secondary'}
+                            color={
+                              delta > 0
+                                ? 'success.main'
+                                : delta < 0
+                                  ? 'error.main'
+                                  : 'text.secondary'
+                            }
                           >
                             {delta > 0 ? '+' : ''}
                             {formatSalaryCents(delta)}
@@ -85,7 +82,12 @@ export function SalaryHistoryList({ history }: Props) {
                   }
                   secondary={
                     <>
-                      <Typography variant="caption" color="text.secondary" component="span" display="block">
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        component="span"
+                        display="block"
+                      >
                         {formatPeriod(entry.effectiveFrom, entry.effectiveTo)}
                       </Typography>
                       <Typography variant="caption" color="text.secondary" component="span">

@@ -17,14 +17,10 @@ function parseUtcDate(iso: string): number {
 }
 
 function chronological(history: EmployeeHistoryEntry[]): EmployeeHistoryEntry[] {
-  return [...history].sort(
-    (a, b) => parseUtcDate(a.effectiveFrom) - parseUtcDate(b.effectiveFrom),
-  );
+  return [...history].sort((a, b) => parseUtcDate(a.effectiveFrom) - parseUtcDate(b.effectiveFrom));
 }
 
-function buildStepPath(
-  points: Array<{ x: number; y: number }>,
-): string {
+function buildStepPath(points: Array<{ x: number; y: number }>): string {
   if (points.length === 0) return '';
   let d = `M ${points[0].x} ${points[0].y}`;
   for (let i = 1; i < points.length; i++) {
@@ -63,13 +59,8 @@ export function SalaryHistoryChart({ history }: Props) {
   const innerH = CHART_HEIGHT - PAD.top - PAD.bottom;
 
   const points = ordered.map((entry) => {
-    const x =
-      PAD.left +
-      ((parseUtcDate(entry.effectiveFrom) - minDate) / dateRange) * innerW;
-    const y =
-      PAD.top +
-      innerH -
-      ((entry.salaryCents - minSalary) / salaryRange) * innerH;
+    const x = PAD.left + ((parseUtcDate(entry.effectiveFrom) - minDate) / dateRange) * innerW;
+    const y = PAD.top + innerH - ((entry.salaryCents - minSalary) / salaryRange) * innerH;
     return { x, y, entry };
   });
 
@@ -127,10 +118,7 @@ export function SalaryHistoryChart({ history }: Props) {
           ))}
 
           {yTicks.map((salary) => {
-            const y =
-              PAD.top +
-              innerH -
-              ((salary - minSalary) / salaryRange) * innerH;
+            const y = PAD.top + innerH - ((salary - minSalary) / salaryRange) * innerH;
             return (
               <text
                 key={salary}
@@ -145,12 +133,7 @@ export function SalaryHistoryChart({ history }: Props) {
             );
           })}
 
-          <text
-            x={PAD.left}
-            y={CHART_HEIGHT - 6}
-            fontSize={10}
-            fill="#6b7280"
-          >
+          <text x={PAD.left} y={CHART_HEIGHT - 6} fontSize={10} fill="#6b7280">
             {formatDate(ordered[0].effectiveFrom)}
           </text>
           <text
