@@ -150,6 +150,30 @@ describe('GET /api/employees/:id/history', () => {
     });
     expect(res.body.data[0].effectiveTo).toBeNull();
   });
+
+  it('returns two rows newest-first after a salary update', async () => {
+    const created = await request(app).post('/api/employees').send(baseInput);
+    await request(app)
+      .patch(`/api/employees/${created.body.id as string}`)
+      .send({ salaryCents: 150_000 });
+
+    const res = await request(app).get(`/api/employees/${created.body.id as string}/history`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data).toHaveLength(2);
+    expect(res.body.data[0].salaryCents).toBe(150_000);
+    expect(res.body.data[0].effectiveTo).toBeNull();
+    expect(res.body.data[1].salaryCents).toBe(baseInput.salaryCents);
+  });
+
+  it('returns 404 for an unknown id', async () => {
+    const res = await request(app).get(
+      '/api/employees/00000000-0000-0000-0000-000000000000/history',
+    );
+
+    expect(res.status).toBe(404);
+    expect(res.body.error.code).toBe('NOT_FOUND');
+  });
 });
 
 // ── PATCH /api/employees/:id ──────────────────────────────────────────────────
