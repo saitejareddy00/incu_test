@@ -7,7 +7,8 @@
  *  3. Acquire a single pool client (one connection for the whole run)
  *  4. Optionally TRUNCATE
  *  5. Bulk-insert via batched COPY FROM STDIN (O(batchSize) peak memory)
- *  6. Print timing / throughput
+ *  6. Seed salary history (1–4 rows per employee)
+ *  7. Print timing / throughput
  */
 import 'dotenv/config';
 import { resolve } from 'node:path';
@@ -15,6 +16,7 @@ import { getPool, closePool } from '../db/pool';
 import { loadNames } from './loadNames';
 import { mulberry32 } from './prng';
 import { bulkInsert } from './bulkInsert';
+import { bulkInsertHistory } from './bulkInsertHistory';
 import { parseArgs } from './cli';
 
 const DATA_DIR = resolve(__dirname, '../../data');
@@ -65,11 +67,18 @@ async function run(): Promise<void> {
       lastNames,
     });
 
+    const historyInserted = await bulkInsertHistory({
+      client,
+      batchSize,
+      rng,
+    });
+
     if (analyze) {
       const analyzeStart = performance.now();
       await client.query('ANALYZE employees');
+      await client.query('ANALYZE employee_history');
       console.log(
-        `ANALYZE employees completed in ${((performance.now() - analyzeStart) / 1000).toFixed(2)}s`,
+        `ANALYZE employees + employee_history completed in ${((performance.now() - analyzeStart) / 1000).toFixed(2)}s`,
       );
     }
 
@@ -80,6 +89,7 @@ async function run(): Promise<void> {
     // ── 6. Report ─────────────────────────────────────────────────────────────
     console.log(`\nDone!`);
     console.log(`  Rows inserted : ${inserted.toLocaleString()}`);
+    console.log(`  History rows  : ${historyInserted.toLocaleString()}`);
     console.log(`  Elapsed       : ${elapsedSec.toFixed(2)}s`);
     console.log(`  Throughput    : ${rowsPerSec.toLocaleString()} rows/sec`);
   } finally {

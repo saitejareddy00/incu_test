@@ -100,6 +100,77 @@ export function generateHireDate(rng: Rng): string {
   return new Date(pickedMs).toISOString().slice(0, 10);
 }
 
+/** Fixed "present" date for open history periods (matches hire-date upper bound). */
+export const HISTORY_END_DATE = '2025-12-31';
+
+export interface HistorySeedRow {
+  salaryCents: number;
+  jobTitle: string;
+  effectiveFrom: string;
+  effectiveTo: string | null;
+}
+
+function parseUtcDate(iso: string): number {
+  const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
+  return Date.UTC(y, m - 1, d);
+}
+
+function addDays(iso: string, days: number): string {
+  return new Date(parseUtcDate(iso) + days * 86_400_000).toISOString().slice(0, 10);
+}
+
+/**
+ * Generate 1–4 salary history periods ending at the employee's current salary/job title.
+ * Periods are spaced two days apart so effective_to > effective_from is always satisfied.
+ */
+export function generateHistoryForEmployee(
+  rng: Rng,
+  hireDate: string,
+  finalSalaryCents: number,
+  finalJobTitle: string,
+): HistorySeedRow[] {
+  let periodCount = 1 + randInt(rng, 4);
+
+  const totalDays = Math.floor(
+    (parseUtcDate(HISTORY_END_DATE) - parseUtcDate(hireDate)) / 86_400_000,
+  );
+  const minDaysForPeriods = periodCount > 1 ? 2 * (periodCount - 1) + 1 : 0;
+  while (periodCount > 1 && totalDays < minDaysForPeriods) {
+    periodCount--;
+  }
+
+  if (periodCount === 1) {
+    return [
+      {
+        salaryCents: finalSalaryCents,
+        jobTitle: finalJobTitle,
+        effectiveFrom: hireDate,
+        effectiveTo: null,
+      },
+    ];
+  }
+
+  const rows: HistorySeedRow[] = [];
+  for (let i = 0; i < periodCount; i++) {
+    const isLast = i === periodCount - 1;
+    const from = addDays(hireDate, i * 2);
+    const to = isLast ? null : addDays(hireDate, i * 2 + 1);
+    const salaryFraction = 0.7 + (0.3 * i) / (periodCount - 1);
+    const salaryCents = isLast
+      ? finalSalaryCents
+      : Math.max(1, Math.round(finalSalaryCents * salaryFraction));
+
+    rows.push({
+      salaryCents,
+      jobTitle: isLast ? finalJobTitle : generateJobTitle(rng),
+      effectiveFrom: from,
+      effectiveTo: to,
+    });
+  }
+
+  return rows;
+}
+
 // ── Row builder ───────────────────────────────────────────────────────────────
 
 export interface SeedRow {

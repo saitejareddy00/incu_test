@@ -6,9 +6,11 @@ import {
   generateCountry,
   generateDepartment,
   generateHireDate,
+  generateHistoryForEmployee,
   generateJobTitle,
   generateRow,
   generateSalaryCents,
+  HISTORY_END_DATE,
 } from './generators';
 
 const FIRST_NAMES = ['Alice', 'Bob', 'Carlos', 'Diana'];
@@ -102,5 +104,53 @@ describe('generateRow', () => {
       return generateRow(rng, 0, FIRST_NAMES, LAST_NAMES);
     };
     expect(make()).toEqual(make());
+  });
+});
+
+describe('generateHistoryForEmployee', () => {
+  it('returns 1–4 periods', () => {
+    const rng = mulberry32(99);
+    for (let i = 0; i < 100; i++) {
+      const rows = generateHistoryForEmployee(rng, '2020-01-01', 5_000_000, 'Engineer');
+      expect(rows.length).toBeGreaterThanOrEqual(1);
+      expect(rows.length).toBeLessThanOrEqual(4);
+    }
+  });
+
+  it('ends with the employee current salary and job title', () => {
+    const rng = mulberry32(7);
+    const rows = generateHistoryForEmployee(rng, '2020-01-01', 5_000_000, 'Staff Engineer');
+    const last = rows[rows.length - 1];
+    expect(last.salaryCents).toBe(5_000_000);
+    expect(last.jobTitle).toBe('Staff Engineer');
+    expect(last.effectiveTo).toBeNull();
+  });
+
+  it('satisfies effective_to IS NULL OR effective_to > effective_from', () => {
+    const rng = mulberry32(11);
+    for (let i = 0; i < 200; i++) {
+      const rows = generateHistoryForEmployee(rng, '2018-06-01', 4_000_000, 'Engineer');
+      for (const row of rows) {
+        expect(row.effectiveFrom).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+        if (row.effectiveTo !== null) {
+          expect(row.effectiveTo > row.effectiveFrom).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('is deterministic for the same rng sequence', () => {
+    const make = () => {
+      const rng = mulberry32(42);
+      return generateHistoryForEmployee(rng, '2021-03-15', 6_000_000, 'Engineer');
+    };
+    expect(make()).toEqual(make());
+  });
+
+  it('falls back to one period when hire date is too close to end date', () => {
+    const rng = mulberry32(3);
+    const rows = generateHistoryForEmployee(rng, HISTORY_END_DATE, 3_000_000, 'Engineer');
+    expect(rows).toHaveLength(1);
+    expect(rows[0].effectiveFrom).toBe(HISTORY_END_DATE);
   });
 });
