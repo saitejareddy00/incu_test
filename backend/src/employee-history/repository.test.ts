@@ -33,4 +33,28 @@ describe('EmployeeHistoryRepository', () => {
       });
     });
   });
+
+  describe('closeActive', () => {
+    it('sets effective_to on the open row only', async () => {
+      await withTestDb(async (client) => {
+        const employee = await createEmployee(client, baseInput);
+        await repo.insert(client, {
+          employeeId: employee.id,
+          salaryCents: baseInput.salaryCents,
+          jobTitle: baseInput.jobTitle,
+          effectiveFrom: baseInput.hireDate,
+          effectiveTo: null,
+        });
+
+        await repo.closeActive(client, employee.id, '2024-06-01');
+
+        const { rows } = await client.query<{ effective_to: string }>(
+          'SELECT effective_to FROM employee_history WHERE employee_id = $1',
+          [employee.id],
+        );
+        expect(rows).toHaveLength(1);
+        expect(rows[0].effective_to).toBe('2024-06-01');
+      });
+    });
+  });
 });
