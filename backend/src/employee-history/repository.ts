@@ -60,4 +60,20 @@ export class EmployeeHistoryRepository {
       [employeeId, effectiveTo],
     );
   }
+
+  async listByEmployee(
+    client: pg.PoolClient,
+    employeeId: string,
+  ): Promise<EmployeeHistoryRow[]> {
+    const { rows } = await client.query(
+      `SELECT ${HISTORY_COLUMNS}
+       FROM employee_history h
+       JOIN employees e ON e.id = h.employee_id
+       WHERE h.employee_id = $1
+       ORDER BY h.effective_from DESC`,
+      [employeeId],
+    );
+
+    return rows.map((r) => toRow(r as Record<string, unknown>));
+  }
 }
