@@ -216,6 +216,28 @@ describe('update', () => {
   });
 });
 
+describe('listHistory', () => {
+  it('returns history rows for an existing employee', async () => {
+    await withTestDb(async (client) => {
+      const svc = service(client);
+      const created = await svc.create(base);
+
+      const history = await svc.listHistory(created.id);
+
+      expect(history).toHaveLength(1);
+      expect(history[0].employeeId).toBe(created.id);
+    });
+  });
+
+  it('throws NotFoundError for an unknown id', async () => {
+    await withTestDb(async (client) => {
+      await expect(
+        service(client).listHistory('00000000-0000-0000-0000-000000000000'),
+      ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    });
+  });
+});
+
 describe('delete', () => {
   it('soft-deletes the employee (resolves without error)', async () => {
     await withTestDb(async (client) => {
