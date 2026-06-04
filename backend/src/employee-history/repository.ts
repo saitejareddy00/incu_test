@@ -51,4 +51,13 @@ export class EmployeeHistoryRepository {
 
     return toRow(joined[0] as Record<string, unknown>);
   }
+
+  async closeActive(client: pg.PoolClient, employeeId: string, effectiveTo: string): Promise<void> {
+    await client.query(
+      `UPDATE employee_history
+       SET effective_to = $2
+       WHERE employee_id = $1 AND effective_to IS NULL`,
+      [employeeId, effectiveTo],
+    );
+  }
 }

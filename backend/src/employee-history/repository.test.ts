@@ -48,12 +48,14 @@ describe('EmployeeHistoryRepository', () => {
 
         await repo.closeActive(client, employee.id, '2024-06-01');
 
-        const { rows } = await client.query<{ effective_to: string }>(
+        const { rows } = await client.query<{ effective_to: Date }>(
           'SELECT effective_to FROM employee_history WHERE employee_id = $1',
           [employee.id],
         );
         expect(rows).toHaveLength(1);
-        expect(rows[0].effective_to).toBe('2024-06-01');
+        const closed = rows[0].effective_to;
+        const closedIso = `${closed.getFullYear()}-${String(closed.getMonth() + 1).padStart(2, '0')}-${String(closed.getDate()).padStart(2, '0')}`;
+        expect(closedIso).toBe('2024-06-01');
       });
     });
   });
