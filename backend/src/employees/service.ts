@@ -1,6 +1,7 @@
 import pg from 'pg';
 import { NotFoundError } from '../app/errors';
 import { EmployeeHistoryRepository } from '../employee-history/repository';
+import type { EmployeeHistoryRow } from '../employee-history/schemas';
 import {
   createEmployee,
   deleteEmployee,
@@ -120,6 +121,14 @@ export class EmployeeService {
     return this.withClient(async (client) => {
       const deleted = await deleteEmployee(client, id);
       if (!deleted) throw new NotFoundError(`Employee '${id}' not found`);
+    });
+  }
+
+  async listHistory(id: string): Promise<EmployeeHistoryRow[]> {
+    return this.withClient(async (client) => {
+      const employee = await getEmployeeById(client, id);
+      if (!employee) throw new NotFoundError(`Employee '${id}' not found`);
+      return this.history.listByEmployee(client, id);
     });
   }
 }
