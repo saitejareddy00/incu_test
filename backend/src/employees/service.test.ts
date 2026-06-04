@@ -201,6 +201,19 @@ describe('update', () => {
       expect(history[0].jobTitle).toBe(base.jobTitle);
     });
   });
+
+  it('does not append history when salary is unchanged', async () => {
+    await withTestDb(async (client) => {
+      const svc = service(client);
+      const historyRepo = new EmployeeHistoryRepository();
+      const created = await svc.create(base);
+
+      await svc.update(created.id, { salaryCents: base.salaryCents });
+
+      const history = await historyRepo.listByEmployee(client, created.id);
+      expect(history).toHaveLength(1);
+    });
+  });
 });
 
 describe('delete', () => {
