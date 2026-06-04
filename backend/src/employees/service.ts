@@ -41,8 +41,36 @@ export class EmployeeService {
     }
   }
 
+  private async withTransaction<T>(fn: (client: pg.PoolClient) => Promise<T>): Promise<T> {
+    if (this.boundClient) {
+      return fn(this.boundClient);
+    }
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await fn(client);
+      await client.query('COMMIT');
+      return result;
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
   async create(input: CreateEmployeeInput): Promise<EmployeeRow> {
-    return this.withClient((client) => createEmployee(client, input));
+    return this.withTransaction(async (client) => {
+      const employee = await createEmployee(client, input);
+      await this.history.insert(client, {
+        employeeId: employee.id,
+        salaryCents: input.salaryCents,
+        jobTitle: input.jobTitle,
+        effectiveFrom: input.hireDate,
+        effectiveTo: null,
+      });
+      return employee;
+    });
   }
 
   async getById(id: string): Promise<EmployeeRow> {
