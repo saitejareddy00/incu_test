@@ -9,6 +9,7 @@ export const queryKeys = {
     all: ['employees'] as const,
     list: (params: EmployeeListParams) => ['employees', 'list', params] as const,
     detail: (id: string) => ['employees', 'detail', id] as const,
+    history: (id: string) => ['employees', 'history', id] as const,
   },
   insights: {
     all: ['insights'] as const,
@@ -38,6 +39,14 @@ export function useEmployee(id: string) {
   });
 }
 
+export function useEmployeeHistory(id: string) {
+  return useQuery({
+    queryKey: queryKeys.employees.history(id),
+    queryFn: () => employeesClient.getHistory(id),
+    enabled: Boolean(id),
+  });
+}
+
 export function useCreateEmployee() {
   const qc = useQueryClient();
   return useMutation({
@@ -55,6 +64,8 @@ export function useUpdateEmployee(id: string) {
     mutationFn: (patch: UpdateEmployeeInput) => employeesClient.update(id, patch),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: queryKeys.employees.all });
+      void qc.invalidateQueries({ queryKey: queryKeys.employees.detail(id) });
+      void qc.invalidateQueries({ queryKey: queryKeys.employees.history(id) });
       void qc.invalidateQueries({ queryKey: queryKeys.insights.all });
     },
   });

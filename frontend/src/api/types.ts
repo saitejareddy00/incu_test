@@ -34,6 +34,22 @@ export interface CreateEmployeeInput {
 
 export type UpdateEmployeeInput = Partial<CreateEmployeeInput>;
 
+export interface EmployeeHistoryEntry {
+  id: string;
+  employeeId: string;
+  salaryCents: number;
+  jobTitle: string;
+  effectiveFrom: string;
+  effectiveTo: string | null;
+  createdAt: string;
+  fullName: string;
+  email: string;
+}
+
+export interface EmployeeHistoryResponse {
+  data: EmployeeHistoryEntry[];
+}
+
 // ── List response ─────────────────────────────────────────────────────────────
 
 export interface EmployeeListParams {

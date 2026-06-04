@@ -61,10 +61,7 @@ export class EmployeeHistoryRepository {
     );
   }
 
-  async listByEmployee(
-    client: pg.PoolClient,
-    employeeId: string,
-  ): Promise<EmployeeHistoryRow[]> {
+  async listByEmployee(client: pg.PoolClient, employeeId: string): Promise<EmployeeHistoryRow[]> {
     const { rows } = await client.query(
       `SELECT ${HISTORY_COLUMNS}
        FROM employee_history h

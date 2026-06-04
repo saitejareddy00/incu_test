@@ -28,9 +28,43 @@ const EMPLOYEE = {
   deletedAt: null,
 };
 
+const HISTORY = {
+  data: [
+    {
+      id: 'hist-2',
+      employeeId: 'emp-1',
+      salaryCents: 150_000,
+      jobTitle: 'Senior Engineer',
+      effectiveFrom: '2024-06-02',
+      effectiveTo: null,
+      createdAt: '2024-06-02T00:00:00Z',
+      fullName: 'Alice Smith',
+      email: 'alice@example.com',
+    },
+    {
+      id: 'hist-1',
+      employeeId: 'emp-1',
+      salaryCents: 120_000,
+      jobTitle: 'Engineer',
+      effectiveFrom: '2024-01-15',
+      effectiveTo: '2024-06-02',
+      createdAt: '2024-01-15T00:00:00Z',
+      fullName: 'Alice Smith',
+      email: 'alice@example.com',
+    },
+  ],
+};
+
 const server = setupServer(
   http.get('/api/employees/:id', ({ params }) => {
     if (params.id === 'emp-1') return HttpResponse.json(EMPLOYEE);
+    return HttpResponse.json(
+      { error: { code: 'NOT_FOUND', message: 'Employee not found' } },
+      { status: 404 },
+    );
+  }),
+  http.get('/api/employees/:id/history', ({ params }) => {
+    if (params.id === 'emp-1') return HttpResponse.json(HISTORY);
     return HttpResponse.json(
       { error: { code: 'NOT_FOUND', message: 'Employee not found' } },
       { status: 404 },
@@ -86,5 +120,14 @@ describe('EmployeeDetailPage', () => {
   it('shows a 404 message for an unknown employee', async () => {
     renderPage('does-not-exist');
     await waitFor(() => expect(screen.getByText(/not found/i)).toBeInTheDocument());
+  });
+
+  it('renders salary history chart and change list', async () => {
+    renderPage();
+    await waitFor(() => expect(screen.getByText('Salary over time')).toBeInTheDocument());
+    expect(screen.getByText('Salary changes')).toBeInTheDocument();
+    expect(screen.getAllByText('$1,500').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('$1,200').length).toBeGreaterThan(0);
+    expect(screen.getByText('Current')).toBeInTheDocument();
   });
 });

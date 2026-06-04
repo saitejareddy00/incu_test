@@ -17,6 +17,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useEmployee } from '../api/hooks';
 import { ApiResponseError } from '../api/types';
 import { DeleteEmployeeDialog } from '../features/employees/DeleteEmployeeDialog';
+import { EmployeeSalaryHistoryPanel } from '../features/employees/EmployeeSalaryHistoryPanel';
 import { EmployeeFormDialog } from '../features/employees/EmployeeFormDialog';
 import { formatDate } from '../utils/formatDate';
 import { formatSalaryCents } from '../utils/formatSalary';
@@ -73,7 +74,7 @@ export default function EmployeeDetailPage() {
   if (!employee) return null;
 
   return (
-    <Box sx={{ p: 3, maxWidth: 800 }}>
+    <Box sx={{ p: 3, maxWidth: 1100 }}>
       {/* ── Breadcrumb + actions ────────────────────────────────────── */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
         <Button
@@ -118,32 +119,39 @@ export default function EmployeeDetailPage() {
 
       <Divider sx={{ mb: 3 }} />
 
-      {/* ── Detail grid ─────────────────────────────────────────────── */}
-      <Paper variant="outlined" sx={{ p: 3 }}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6}>
-            <Field label="Email" value={employee.email} />
-          </Grid>
-          <Grid item xs={6} sm={3}>
-            <Field
-              label="Country"
-              value={<Chip label={employee.country} size="small" sx={{ fontSize: 11 }} />}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Field label="Salary (USD)" value={formatSalaryCents(employee.salaryCents)} />
-          </Grid>
-          <Grid item xs={6} sm={4}>
-            <Field label="Hire Date" value={formatDate(employee.hireDate)} />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Field
-              label="Employee ID"
-              value={<code style={{ fontSize: 11 }}>{employee.id}</code>}
-            />
-          </Grid>
+      <Grid container spacing={3} alignItems="flex-start">
+        <Grid item xs={12} md={7}>
+          <Paper variant="outlined" sx={{ p: 3 }}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <Field label="Email" value={employee.email} />
+              </Grid>
+              <Grid item xs={6} sm={3}>
+                <Field
+                  label="Country"
+                  value={<Chip label={employee.country} size="small" sx={{ fontSize: 11 }} />}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Field label="Salary (USD)" value={formatSalaryCents(employee.salaryCents)} />
+              </Grid>
+              <Grid item xs={6} sm={4}>
+                <Field label="Hire Date" value={formatDate(employee.hireDate)} />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Field
+                  label="Employee ID"
+                  value={<code style={{ fontSize: 11 }}>{employee.id}</code>}
+                />
+              </Grid>
+            </Grid>
+          </Paper>
         </Grid>
-      </Paper>
+
+        <Grid item xs={12} md={5}>
+          <EmployeeSalaryHistoryPanel employeeId={employee.id} />
+        </Grid>
+      </Grid>
 
       {/* ── Dialogs ─────────────────────────────────────────────────── */}
       <EmployeeFormDialog open={editOpen} employee={employee} onClose={() => setEditOpen(false)} />

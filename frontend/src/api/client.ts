@@ -4,6 +4,7 @@ import {
   CountryStats,
   CreateEmployeeInput,
   Employee,
+  EmployeeHistoryResponse,
   EmployeeListParams,
   EmployeeListResponse,
   OverviewMetrics,
@@ -54,6 +55,10 @@ export const employeesClient = {
 
   getById(id: string): Promise<Employee> {
     return request(`/employees/${encodeURIComponent(id)}`);
+  },
+
+  getHistory(id: string): Promise<EmployeeHistoryResponse> {
+    return request(`/employees/${encodeURIComponent(id)}/history`);
   },
 
   create(input: CreateEmployeeInput): Promise<Employee> {
