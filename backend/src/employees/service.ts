@@ -11,6 +11,10 @@ import {
 import type { ListEmployeesParams, ListEmployeesResult } from './repository/index';
 import type { CreateEmployeeInput, EmployeeRow, UpdateEmployeeInput } from './schemas';
 
+function todayIsoDate(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 /**
  * Service layer for the Employee domain.
  *
@@ -86,10 +90,29 @@ export class EmployeeService {
   }
 
   async update(id: string, patch: UpdateEmployeeInput): Promise<EmployeeRow> {
-    return this.withClient(async (client) => {
-      const row = await updateEmployee(client, id, patch);
-      if (!row) throw new NotFoundError(`Employee '${id}' not found`);
-      return row;
+    return this.withTransaction(async (client) => {
+      const existing = await getEmployeeById(client, id);
+      if (!existing) throw new NotFoundError(`Employee '${id}' not found`);
+
+      const updated = await updateEmployee(client, id, patch);
+      if (!updated) throw new NotFoundError(`Employee '${id}' not found`);
+
+      const salaryChanged =
+        patch.salaryCents !== undefined && patch.salaryCents !== existing.salaryCents;
+
+      if (salaryChanged) {
+        const today = todayIsoDate();
+        await this.history.closeActive(client, id, today);
+        await this.history.insert(client, {
+          employeeId: id,
+          salaryCents: updated.salaryCents,
+          jobTitle: updated.jobTitle,
+          effectiveFrom: today,
+          effectiveTo: null,
+        });
+      }
+
+      return updated;
     });
   }
 
