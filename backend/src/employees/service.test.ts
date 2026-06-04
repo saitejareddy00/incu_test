@@ -187,6 +187,20 @@ describe('update', () => {
       expect(history[1].effectiveTo).toBe(today);
     });
   });
+
+  it('does not append history when only job title changes', async () => {
+    await withTestDb(async (client) => {
+      const svc = service(client);
+      const historyRepo = new EmployeeHistoryRepository();
+      const created = await svc.create(base);
+
+      await svc.update(created.id, { jobTitle: 'Senior Engineer' });
+
+      const history = await historyRepo.listByEmployee(client, created.id);
+      expect(history).toHaveLength(1);
+      expect(history[0].jobTitle).toBe(base.jobTitle);
+    });
+  });
 });
 
 describe('delete', () => {
