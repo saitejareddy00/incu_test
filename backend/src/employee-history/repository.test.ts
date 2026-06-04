@@ -59,4 +59,46 @@ describe('EmployeeHistoryRepository', () => {
       });
     });
   });
+
+  describe('listByEmployee', () => {
+    it('returns rows ordered by effective_from DESC with joined employee fields', async () => {
+      await withTestDb(async (client) => {
+        const employee = await createEmployee(client, baseInput);
+        await repo.insert(client, {
+          employeeId: employee.id,
+          salaryCents: 100_000,
+          jobTitle: 'Junior Engineer',
+          effectiveFrom: '2024-01-15',
+          effectiveTo: '2024-06-01',
+        });
+        await repo.insert(client, {
+          employeeId: employee.id,
+          salaryCents: 120_000,
+          jobTitle: 'Engineer',
+          effectiveFrom: '2024-06-02',
+          effectiveTo: null,
+        });
+
+        const rows = await repo.listByEmployee(client, employee.id);
+
+        expect(rows).toHaveLength(2);
+        expect(rows[0].salaryCents).toBe(120_000);
+        expect(rows[0].effectiveFrom).toBe('2024-06-02');
+        expect(rows[0].fullName).toBe('Alice Smith');
+        expect(rows[0].email).toBe(baseInput.email);
+        expect(rows[1].salaryCents).toBe(100_000);
+        expect(rows[1].effectiveFrom).toBe('2024-01-15');
+      });
+    });
+
+    it('returns an empty array when the employee has no history', async () => {
+      await withTestDb(async (client) => {
+        const employee = await createEmployee(client, baseInput);
+
+        const rows = await repo.listByEmployee(client, employee.id);
+
+        expect(rows).toEqual([]);
+      });
+    });
+  });
 });
