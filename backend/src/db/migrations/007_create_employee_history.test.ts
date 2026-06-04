@@ -44,7 +44,9 @@ describe('007_create_employee_history.sql', () => {
   });
 
   it('has composite index on (employee_id, effective_from DESC)', () => {
-    expect(sql).toMatch(/CREATE INDEX IF NOT EXISTS idx_employee_history_employee_id_effective_from/i);
+    expect(sql).toMatch(
+      /CREATE INDEX IF NOT EXISTS idx_employee_history_employee_id_effective_from/i,
+    );
     expect(sql).toMatch(/ON employee_history\s*\(\s*employee_id\s*,\s*effective_from DESC\s*\)/i);
   });
 });
