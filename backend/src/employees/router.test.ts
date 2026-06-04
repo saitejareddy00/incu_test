@@ -131,6 +131,27 @@ describe('GET /api/employees/:id', () => {
   });
 });
 
+// ── GET /api/employees/:id/history ───────────────────────────────────────────
+
+describe('GET /api/employees/:id/history', () => {
+  it('returns 200 with one history row after create', async () => {
+    const created = await request(app).post('/api/employees').send(baseInput);
+
+    const res = await request(app).get(`/api/employees/${created.body.id as string}/history`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data).toHaveLength(1);
+    expect(res.body.data[0]).toMatchObject({
+      employeeId: created.body.id,
+      salaryCents: baseInput.salaryCents,
+      jobTitle: baseInput.jobTitle,
+      fullName: 'Alice Smith',
+      email: baseInput.email,
+    });
+    expect(res.body.data[0].effectiveTo).toBeNull();
+  });
+});
+
 // ── PATCH /api/employees/:id ──────────────────────────────────────────────────
 
 describe('PATCH /api/employees/:id', () => {
