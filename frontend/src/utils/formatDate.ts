@@ -19,3 +19,20 @@ export function formatDate(value: string | undefined | null): string {
     timeZone: 'UTC',
   }).format(date);
 }
+
+/** Format an ISO datetime for display including time (UTC). */
+export function formatDateTime(value: string | undefined | null): string {
+  if (!value) return '—';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: 'UTC',
+  }).format(date);
+}

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { EmployeeHistoryRepository } from '../employee-history/repository';
+import { hireDateToEffectiveFrom } from '../employee-history/schemas';
 import { getTestPool, withTestDb } from '../test/helpers/db';
 import { EmployeeService } from './service';
 
@@ -54,7 +55,7 @@ describe('create', () => {
         jobTitle: base.jobTitle,
         effectiveTo: null,
       });
-      expect(history[0].effectiveFrom).toBe(base.hireDate);
+      expect(history[0].effectiveFrom).toEqual(new Date(hireDateToEffectiveFrom(base.hireDate)));
     });
   });
 });
@@ -170,7 +171,6 @@ describe('update', () => {
       const svc = service(client);
       const historyRepo = new EmployeeHistoryRepository();
       const created = await svc.create(base);
-      const today = new Date().toISOString().slice(0, 10);
 
       await svc.update(created.id, { salaryCents: 150_000 });
 
@@ -180,11 +180,31 @@ describe('update', () => {
         salaryCents: 150_000,
         effectiveTo: null,
       });
-      expect(history[0].effectiveFrom).toBe(today);
+      expect(history[0].effectiveFrom).toBeInstanceOf(Date);
       expect(history[1]).toMatchObject({
         salaryCents: base.salaryCents,
       });
-      expect(history[1].effectiveTo).toBe(today);
+      expect(history[1].effectiveTo).toBeInstanceOf(Date);
+      expect(history[0].effectiveFrom.getTime()).toBeGreaterThanOrEqual(
+        history[1].effectiveTo!.getTime(),
+      );
+    });
+  });
+
+  it('allows multiple salary changes in the same day', async () => {
+    await withTestDb(async (client) => {
+      const svc = service(client);
+      const historyRepo = new EmployeeHistoryRepository();
+      const created = await svc.create(base);
+
+      await svc.update(created.id, { salaryCents: 140_000 });
+      await svc.update(created.id, { salaryCents: 150_000 });
+
+      const history = await historyRepo.listByEmployee(client, created.id);
+      expect(history).toHaveLength(3);
+      expect(history[0].salaryCents).toBe(150_000);
+      expect(history[1].salaryCents).toBe(140_000);
+      expect(history[2].salaryCents).toBe(base.salaryCents);
     });
   });
 

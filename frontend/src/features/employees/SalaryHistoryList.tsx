@@ -12,7 +12,7 @@ import {
   Typography,
 } from '@mui/material';
 import type { EmployeeHistoryEntry } from '../../api/types';
-import { formatDate } from '../../utils/formatDate';
+import { formatDateTime } from '../../utils/formatDate';
 import { formatSalaryCents } from '../../utils/formatSalary';
 
 interface Props {
@@ -20,9 +20,9 @@ interface Props {
 }
 
 function formatPeriod(from: string, to: string | null): string {
-  const start = formatDate(from);
+  const start = formatDateTime(from);
   if (!to) return `${start} — Present`;
-  return `${start} — ${formatDate(to)}`;
+  return `${start} — ${formatDateTime(to)}`;
 }
 
 function ChangeIcon({ delta }: { delta: number }) {

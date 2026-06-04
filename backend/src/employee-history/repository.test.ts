@@ -3,6 +3,7 @@ import { withTestDb } from '../test/helpers/db';
 import { createEmployee } from '../employees/repository/index';
 import { baseInput } from '../employees/repository/create.test';
 import { EmployeeHistoryRepository } from './repository';
+import { hireDateToEffectiveFrom } from './schemas';
 
 const repo = new EmployeeHistoryRepository();
 
@@ -16,7 +17,7 @@ describe('EmployeeHistoryRepository', () => {
           employeeId: employee.id,
           salaryCents: baseInput.salaryCents,
           jobTitle: baseInput.jobTitle,
-          effectiveFrom: baseInput.hireDate,
+          effectiveFrom: hireDateToEffectiveFrom(baseInput.hireDate),
           effectiveTo: null,
         });
 
@@ -25,11 +26,27 @@ describe('EmployeeHistoryRepository', () => {
         expect(row.salaryCents).toBe(baseInput.salaryCents);
         expect(typeof row.salaryCents).toBe('number');
         expect(row.jobTitle).toBe(baseInput.jobTitle);
-        expect(row.effectiveFrom).toBe(baseInput.hireDate);
+        expect(row.effectiveFrom).toEqual(new Date(hireDateToEffectiveFrom(baseInput.hireDate)));
         expect(row.effectiveTo).toBeNull();
         expect(row.createdAt).toBeInstanceOf(Date);
         expect(row.fullName).toBe('Alice Smith');
         expect(row.email).toBe(baseInput.email);
+      });
+    });
+
+    it('defaults effective_from to now when omitted', async () => {
+      await withTestDb(async (client) => {
+        const employee = await createEmployee(client, baseInput);
+        const before = Date.now();
+
+        const row = await repo.insert(client, {
+          employeeId: employee.id,
+          salaryCents: baseInput.salaryCents,
+          jobTitle: baseInput.jobTitle,
+        });
+
+        expect(row.effectiveFrom.getTime()).toBeGreaterThanOrEqual(before);
+        expect(row.effectiveTo).toBeNull();
       });
     });
   });
@@ -42,20 +59,18 @@ describe('EmployeeHistoryRepository', () => {
           employeeId: employee.id,
           salaryCents: baseInput.salaryCents,
           jobTitle: baseInput.jobTitle,
-          effectiveFrom: baseInput.hireDate,
+          effectiveFrom: hireDateToEffectiveFrom(baseInput.hireDate),
           effectiveTo: null,
         });
 
-        await repo.closeActive(client, employee.id, '2024-06-01');
+        await repo.closeActive(client, employee.id);
 
         const { rows } = await client.query<{ effective_to: Date }>(
           'SELECT effective_to FROM employee_history WHERE employee_id = $1',
           [employee.id],
         );
         expect(rows).toHaveLength(1);
-        const closed = rows[0].effective_to;
-        const closedIso = `${closed.getFullYear()}-${String(closed.getMonth() + 1).padStart(2, '0')}-${String(closed.getDate()).padStart(2, '0')}`;
-        expect(closedIso).toBe('2024-06-01');
+        expect(rows[0].effective_to).toBeInstanceOf(Date);
       });
     });
   });
@@ -68,14 +83,14 @@ describe('EmployeeHistoryRepository', () => {
           employeeId: employee.id,
           salaryCents: 100_000,
           jobTitle: 'Junior Engineer',
-          effectiveFrom: '2024-01-15',
-          effectiveTo: '2024-06-01',
+          effectiveFrom: '2024-01-15T00:00:00.000Z',
+          effectiveTo: '2024-06-01T12:00:00.000Z',
         });
         await repo.insert(client, {
           employeeId: employee.id,
           salaryCents: 120_000,
           jobTitle: 'Engineer',
-          effectiveFrom: '2024-06-02',
+          effectiveFrom: '2024-06-02T00:00:00.000Z',
           effectiveTo: null,
         });
 
@@ -83,11 +98,11 @@ describe('EmployeeHistoryRepository', () => {
 
         expect(rows).toHaveLength(2);
         expect(rows[0].salaryCents).toBe(120_000);
-        expect(rows[0].effectiveFrom).toBe('2024-06-02');
+        expect(rows[0].effectiveFrom).toEqual(new Date('2024-06-02T00:00:00.000Z'));
         expect(rows[0].fullName).toBe('Alice Smith');
         expect(rows[0].email).toBe(baseInput.email);
         expect(rows[1].salaryCents).toBe(100_000);
-        expect(rows[1].effectiveFrom).toBe('2024-01-15');
+        expect(rows[1].effectiveFrom).toEqual(new Date('2024-01-15T00:00:00.000Z'));
       });
     });
 

@@ -2,6 +2,7 @@ import pg from 'pg';
 import { NotFoundError } from '../app/errors';
 import { EmployeeHistoryRepository } from '../employee-history/repository';
 import type { EmployeeHistoryRow } from '../employee-history/schemas';
+import { hireDateToEffectiveFrom } from '../employee-history/schemas';
 import {
   createEmployee,
   deleteEmployee,
@@ -11,10 +12,6 @@ import {
 } from './repository/index';
 import type { ListEmployeesParams, ListEmployeesResult } from './repository/index';
 import type { CreateEmployeeInput, EmployeeRow, UpdateEmployeeInput } from './schemas';
-
-function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 /**
  * Service layer for the Employee domain.
@@ -71,7 +68,7 @@ export class EmployeeService {
         employeeId: employee.id,
         salaryCents: input.salaryCents,
         jobTitle: input.jobTitle,
-        effectiveFrom: input.hireDate,
+        effectiveFrom: hireDateToEffectiveFrom(input.hireDate),
         effectiveTo: null,
       });
       return employee;
@@ -102,13 +99,11 @@ export class EmployeeService {
         patch.salaryCents !== undefined && patch.salaryCents !== existing.salaryCents;
 
       if (salaryChanged) {
-        const today = todayIsoDate();
-        await this.history.closeActive(client, id, today);
+        await this.history.closeActive(client, id);
         await this.history.insert(client, {
           employeeId: id,
           salaryCents: updated.salaryCents,
           jobTitle: updated.jobTitle,
-          effectiveFrom: today,
           effectiveTo: null,
         });
       }

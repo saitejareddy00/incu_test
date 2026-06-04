@@ -13,32 +13,31 @@ const HISTORY_COLUMNS = `
   e.email
 `;
 
-function toIsoDate(value: unknown): string {
-  if (typeof value === 'string') return value.slice(0, 10);
-  const d = value as Date;
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
 function toRow(raw: Record<string, unknown>): EmployeeHistoryRow {
   return {
     ...(raw as EmployeeHistoryRow),
     salaryCents: Number(raw.salaryCents),
-    effectiveFrom: toIsoDate(raw.effectiveFrom),
-    effectiveTo: raw.effectiveTo != null ? toIsoDate(raw.effectiveTo) : null,
+    effectiveFrom: raw.effectiveFrom as Date,
+    effectiveTo: raw.effectiveTo != null ? (raw.effectiveTo as Date) : null,
   };
 }
 
 export class EmployeeHistoryRepository {
   async insert(client: pg.PoolClient, input: CreateHistoryInput): Promise<EmployeeHistoryRow> {
+    const effectiveFrom = input.effectiveFrom ?? new Date();
+
     const { rows } = await client.query<{ id: string }>(
       `INSERT INTO employee_history
          (employee_id, salary_cents, job_title, effective_from, effective_to)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING id`,
-      [input.employeeId, input.salaryCents, input.jobTitle, input.effectiveFrom, input.effectiveTo],
+      [
+        input.employeeId,
+        input.salaryCents,
+        input.jobTitle,
+        effectiveFrom,
+        input.effectiveTo ?? null,
+      ],
     );
 
     const { rows: joined } = await client.query(
@@ -52,12 +51,12 @@ export class EmployeeHistoryRepository {
     return toRow(joined[0] as Record<string, unknown>);
   }
 
-  async closeActive(client: pg.PoolClient, employeeId: string, effectiveTo: string): Promise<void> {
+  async closeActive(client: pg.PoolClient, employeeId: string): Promise<void> {
     await client.query(
       `UPDATE employee_history
-       SET effective_to = $2
+       SET effective_to = clock_timestamp()
        WHERE employee_id = $1 AND effective_to IS NULL`,
-      [employeeId, effectiveTo],
+      [employeeId],
     );
   }
 

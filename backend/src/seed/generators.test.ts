@@ -131,9 +131,11 @@ describe('generateHistoryForEmployee', () => {
     for (let i = 0; i < 200; i++) {
       const rows = generateHistoryForEmployee(rng, '2018-06-01', 4_000_000, 'Engineer');
       for (const row of rows) {
-        expect(row.effectiveFrom).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+        expect(row.effectiveFrom).toMatch(/^\d{4}-\d{2}-\d{2}T/);
         if (row.effectiveTo !== null) {
-          expect(row.effectiveTo > row.effectiveFrom).toBe(true);
+          expect(new Date(row.effectiveTo).getTime()).toBeGreaterThan(
+            new Date(row.effectiveFrom).getTime(),
+          );
         }
       }
     }
@@ -151,6 +153,6 @@ describe('generateHistoryForEmployee', () => {
     const rng = mulberry32(3);
     const rows = generateHistoryForEmployee(rng, HISTORY_END_DATE, 3_000_000, 'Engineer');
     expect(rows).toHaveLength(1);
-    expect(rows[0].effectiveFrom).toBe(HISTORY_END_DATE);
+    expect(rows[0].effectiveFrom).toBe(`${HISTORY_END_DATE}T00:00:00.000Z`);
   });
 });

@@ -116,7 +116,7 @@ function parseUtcDate(iso: string): number {
 }
 
 function addDays(iso: string, days: number): string {
-  return new Date(parseUtcDate(iso) + days * 86_400_000).toISOString().slice(0, 10);
+  return new Date(parseUtcDate(iso) + days * 86_400_000).toISOString();
 }
 
 /**
@@ -144,7 +144,7 @@ export function generateHistoryForEmployee(
       {
         salaryCents: finalSalaryCents,
         jobTitle: finalJobTitle,
-        effectiveFrom: hireDate,
+        effectiveFrom: `${hireDate}T00:00:00.000Z`,
         effectiveTo: null,
       },
     ];
