@@ -23,8 +23,6 @@ export const EmployeeHistoryRowSchema = z.object({
   effectiveFrom: z.date(),
   effectiveTo: z.date().nullable(),
   createdAt: z.date(),
-  fullName: z.string(),
-  email: z.string().email(),
 });
 
 export type EmployeeHistoryRow = z.infer<typeof EmployeeHistoryRowSchema>;

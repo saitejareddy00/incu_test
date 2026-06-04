@@ -42,8 +42,6 @@ export interface EmployeeHistoryEntry {
   effectiveFrom: string;
   effectiveTo: string | null;
   createdAt: string;
-  fullName: string;
-  email: string;
 }
 
 export interface EmployeeHistoryResponse {

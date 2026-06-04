@@ -29,8 +29,6 @@ describe('EmployeeHistoryRepository', () => {
         expect(row.effectiveFrom).toEqual(new Date(hireDateToEffectiveFrom(baseInput.hireDate)));
         expect(row.effectiveTo).toBeNull();
         expect(row.createdAt).toBeInstanceOf(Date);
-        expect(row.fullName).toBe('Alice Smith');
-        expect(row.email).toBe(baseInput.email);
       });
     });
 
@@ -99,8 +97,6 @@ describe('EmployeeHistoryRepository', () => {
         expect(rows).toHaveLength(2);
         expect(rows[0].salaryCents).toBe(120_000);
         expect(rows[0].effectiveFrom).toEqual(new Date('2024-06-02T00:00:00.000Z'));
-        expect(rows[0].fullName).toBe('Alice Smith');
-        expect(rows[0].email).toBe(baseInput.email);
         expect(rows[1].salaryCents).toBe(100_000);
         expect(rows[1].effectiveFrom).toEqual(new Date('2024-01-15T00:00:00.000Z'));
       });

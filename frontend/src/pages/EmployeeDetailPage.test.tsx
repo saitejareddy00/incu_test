@@ -37,9 +37,7 @@ const HISTORY = {
       jobTitle: 'Senior Engineer',
       effectiveFrom: '2024-06-02T00:00:00.000Z',
       effectiveTo: null,
-      createdAt: '2024-06-02T00:00:00Z',
-      fullName: 'Alice Smith',
-      email: 'alice@example.com',
+      createdAt: '2024-06-02T00:00:00.000Z',
     },
     {
       id: 'hist-1',
@@ -48,9 +46,7 @@ const HISTORY = {
       jobTitle: 'Engineer',
       effectiveFrom: '2024-01-15T00:00:00.000Z',
       effectiveTo: '2024-06-02T12:00:00.000Z',
-      createdAt: '2024-01-15T00:00:00Z',
-      fullName: 'Alice Smith',
-      email: 'alice@example.com',
+      createdAt: '2024-01-15T00:00:00.000Z',
     },
   ],
 };

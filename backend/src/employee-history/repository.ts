@@ -2,15 +2,13 @@ import pg from 'pg';
 import type { CreateHistoryInput, EmployeeHistoryRow } from './schemas';
 
 const HISTORY_COLUMNS = `
-  h.id,
-  h.employee_id    AS "employeeId",
-  h.salary_cents   AS "salaryCents",
-  h.job_title      AS "jobTitle",
-  h.effective_from AS "effectiveFrom",
-  h.effective_to   AS "effectiveTo",
-  h.created_at     AS "createdAt",
-  e.full_name      AS "fullName",
-  e.email
+  id,
+  employee_id    AS "employeeId",
+  salary_cents   AS "salaryCents",
+  job_title      AS "jobTitle",
+  effective_from AS "effectiveFrom",
+  effective_to   AS "effectiveTo",
+  created_at     AS "createdAt"
 `;
 
 function toRow(raw: Record<string, unknown>): EmployeeHistoryRow {
@@ -26,11 +24,11 @@ export class EmployeeHistoryRepository {
   async insert(client: pg.PoolClient, input: CreateHistoryInput): Promise<EmployeeHistoryRow> {
     const effectiveFrom = input.effectiveFrom ?? new Date();
 
-    const { rows } = await client.query<{ id: string }>(
+    const { rows } = await client.query(
       `INSERT INTO employee_history
          (employee_id, salary_cents, job_title, effective_from, effective_to)
        VALUES ($1, $2, $3, $4, $5)
-       RETURNING id`,
+       RETURNING ${HISTORY_COLUMNS}`,
       [
         input.employeeId,
         input.salaryCents,
@@ -40,15 +38,7 @@ export class EmployeeHistoryRepository {
       ],
     );
 
-    const { rows: joined } = await client.query(
-      `SELECT ${HISTORY_COLUMNS}
-       FROM employee_history h
-       JOIN employees e ON e.id = h.employee_id
-       WHERE h.id = $1`,
-      [rows[0].id],
-    );
-
-    return toRow(joined[0] as Record<string, unknown>);
+    return toRow(rows[0] as Record<string, unknown>);
   }
 
   async closeActive(client: pg.PoolClient, employeeId: string): Promise<void> {
@@ -63,10 +53,9 @@ export class EmployeeHistoryRepository {
   async listByEmployee(client: pg.PoolClient, employeeId: string): Promise<EmployeeHistoryRow[]> {
     const { rows } = await client.query(
       `SELECT ${HISTORY_COLUMNS}
-       FROM employee_history h
-       JOIN employees e ON e.id = h.employee_id
-       WHERE h.employee_id = $1
-       ORDER BY h.effective_from DESC`,
+       FROM employee_history
+       WHERE employee_id = $1
+       ORDER BY effective_from DESC`,
       [employeeId],
     );
 

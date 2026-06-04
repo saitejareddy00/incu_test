@@ -145,8 +145,6 @@ describe('GET /api/employees/:id/history', () => {
       employeeId: created.body.id,
       salaryCents: baseInput.salaryCents,
       jobTitle: baseInput.jobTitle,
-      fullName: 'Alice Smith',
-      email: baseInput.email,
     });
     expect(res.body.data[0].effectiveTo).toBeNull();
   });
