@@ -2,6 +2,7 @@ import pg from 'pg';
 import express, { Request, Response, NextFunction } from 'express';
 import pinoHttp from 'pino-http';
 import { AppError, NotFoundError } from './errors';
+import { EmployeeHistoryRepository } from '../employee-history/repository';
 import { createEmployeeRouter } from '../employees/router';
 import { EmployeeService } from '../employees/service';
 import { createInsightsRouter } from '../insights/router';
@@ -59,7 +60,10 @@ export function createApp(pool?: pg.Pool, options: AppOptions = {}) {
 
   // ── Employee routes ───────────────────────────────────────────────────────
   if (pool) {
-    app.use('/api/employees', createEmployeeRouter(new EmployeeService(pool)));
+    app.use(
+      '/api/employees',
+      createEmployeeRouter(new EmployeeService(pool, new EmployeeHistoryRepository())),
+    );
     app.use('/api/insights', createInsightsRouter(new InsightsService(pool)));
   }
 

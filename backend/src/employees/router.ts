@@ -64,6 +64,16 @@ export function createEmployeeRouter(service: EmployeeService): Router {
     }
   });
 
+  // ── GET /api/employees/:id/history ──────────────────────────────────────────
+  router.get('/:id/history', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await service.listHistory(req.params.id);
+      res.json({ data });
+    } catch (err) {
+      next(err);
+    }
+  });
+
   // ── GET /api/employees/:id ──────────────────────────────────────────────────
   router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
