@@ -1,5 +1,6 @@
 import pg from 'pg';
 import { NotFoundError } from '../app/errors';
+import { EmployeeHistoryRepository } from '../employee-history/repository';
 import {
   createEmployee,
   deleteEmployee,
@@ -24,6 +25,7 @@ import type { CreateEmployeeInput, EmployeeRow, UpdateEmployeeInput } from './sc
 export class EmployeeService {
   constructor(
     private readonly pool: pg.Pool,
+    private readonly history: EmployeeHistoryRepository = new EmployeeHistoryRepository(),
     private readonly boundClient?: pg.PoolClient,
   ) {}
 

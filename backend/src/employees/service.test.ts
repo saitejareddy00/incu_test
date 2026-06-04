@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { EmployeeHistoryRepository } from '../employee-history/repository';
 import { getTestPool, withTestDb } from '../test/helpers/db';
 import { EmployeeService } from './service';
 
@@ -15,7 +16,7 @@ const base = {
 };
 
 function service(client: import('pg').PoolClient): EmployeeService {
-  return new EmployeeService(getTestPool(), client);
+  return new EmployeeService(getTestPool(), new EmployeeHistoryRepository(), client);
 }
 
 describe('create', () => {
@@ -35,6 +36,25 @@ describe('create', () => {
       const svc = service(client);
       await svc.create(base);
       await expect(svc.create(base)).rejects.toMatchObject({ code: 'CONFLICT' });
+    });
+  });
+
+  it('creates an initial salary history row', async () => {
+    await withTestDb(async (client) => {
+      const svc = service(client);
+      const historyRepo = new EmployeeHistoryRepository();
+      const row = await svc.create(base);
+
+      const history = await historyRepo.listByEmployee(client, row.id);
+
+      expect(history).toHaveLength(1);
+      expect(history[0]).toMatchObject({
+        employeeId: row.id,
+        salaryCents: base.salaryCents,
+        jobTitle: base.jobTitle,
+        effectiveTo: null,
+      });
+      expect(history[0].effectiveFrom).toBe(base.hireDate);
     });
   });
 });
