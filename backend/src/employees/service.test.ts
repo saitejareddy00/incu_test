@@ -164,6 +164,29 @@ describe('update', () => {
       });
     });
   });
+
+  it('appends a history row when salary changes', async () => {
+    await withTestDb(async (client) => {
+      const svc = service(client);
+      const historyRepo = new EmployeeHistoryRepository();
+      const created = await svc.create(base);
+      const today = new Date().toISOString().slice(0, 10);
+
+      await svc.update(created.id, { salaryCents: 150_000 });
+
+      const history = await historyRepo.listByEmployee(client, created.id);
+      expect(history).toHaveLength(2);
+      expect(history[0]).toMatchObject({
+        salaryCents: 150_000,
+        effectiveTo: null,
+      });
+      expect(history[0].effectiveFrom).toBe(today);
+      expect(history[1]).toMatchObject({
+        salaryCents: base.salaryCents,
+      });
+      expect(history[1].effectiveTo).toBe(today);
+    });
+  });
 });
 
 describe('delete', () => {
